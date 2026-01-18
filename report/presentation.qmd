@@ -1,7 +1,7 @@
 ---
 title: "HFD Final Project – Group 1"
 subtitle: "Opening Range Breakout Strategy for SP & NQ Futures"
-author: "Krzysztof Nalazek, <Friend Name>"
+author: "Krzysztof Nalazek, Shah"
 date: "January 2026"
 format:
   revealjs:
@@ -63,17 +63,15 @@ execute:
 :::
 
 ::: {.column width="50%"}
-### Strategy 2: Volatility Bands
+### Strategy 2: Volatility Bands (Strategy 02 — Syed Shah)
 
 **Key Features:**
 
-- Regime-switching logic
-- Mean-reversion vs momentum
-- Rolling volatility bands
-- Dynamic thresholds
+- Trend-following entries (SMA vs SMA_slow level + slope gate)
+- z-score entry with z-momentum confirmation (z accelerating into entry)
+- Hard constraints: no-trade window, no new entries after 14:30, forced flat from 15:40
+- Risk controls: z stop-loss + extreme z stop, cooldown after exits (reduces churn)
 :::
-::::
-
 <br>
 
 ---
