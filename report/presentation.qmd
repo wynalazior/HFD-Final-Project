@@ -121,19 +121,25 @@ orb = pd.read_csv(orb_summary_path)
 
 ::: {.columns}
 ::: {.column width="50%"}
+**3-Way Data Split:**
+
+- **Training** (4 qtrs): 2023_Q1, Q3, 2024_Q2, Q4
+- **Validation** (2 qtrs): 2023_Q4, 2025_Q1  
+- **Test** (1 qtr): 2025_Q2
+
 **Grid Search:**
 
 - **ATR Window**: [15, 30, 60] minutes
 - **ATR Multiplier**: [0.0, 0.05, 0.10, 0.15, 0.20]
-- **Objective**: Maximize sum of STAT scores across in-sample quarters
+- **Selection**: Based on VALIDATION performance
 
 **Optimal Parameters:**
 
 ```{python}
 #| echo: true
-# Best parameters found
-print("SP: ATR_window=30, ATR_mult=0.10")
-print("NQ: ATR_window=30, ATR_mult=0.10")
+# Best parameters (selected on validation)
+print("SP: ATR_window=15, ATR_mult=0.0")
+print("NQ: ATR_window=30, ATR_mult=0.2")
 ```
 :::
 
@@ -145,8 +151,45 @@ $$\text{STAT} = (\text{Sharpe}_{\text{net}} - 0.5) \times \ln(|\text{Net PnL}/10
 - Penalizes low Sharpe ratios
 - Rewards larger absolute PnL
 - Balances risk-adjusted and absolute returns
+
+**Methodology:**
+
+1. Evaluate all combinations on TRAIN
+2. Select best based on VALIDATION  
+3. Final evaluation on TEST (unseen)
 :::
 :::
+
+---
+
+## ORB: Train/Validation/Test Performance
+
+```{python}
+#| fig-width: 9
+#| fig-height: 4
+
+import matplotlib.pyplot as plt
+from matplotlib.image import imread
+
+# Load and display the train/val/test comparison
+img_path = REPO_ROOT / "Testing" / "outputs_orb_final" / "train_val_test.png"
+if img_path.exists():
+    img = imread(img_path)
+    fig, ax = plt.subplots(figsize=(9, 4))
+    ax.imshow(img)
+    ax.axis('off')
+    plt.tight_layout()
+    plt.show()
+else:
+    print("Train/Val/Test visualization not found")
+```
+
+**Key Observations:**
+
+- Parameters selected based on VALIDATION performance (not training)
+- TEST quarter (2025_Q2) is completely unseen during optimization
+- Performance degradation from train → validation → test expected
+- Large gap suggests strategy may not generalize well
 
 ---
 
@@ -351,8 +394,6 @@ print(f"Annualized Sharpe: {sharpe:.3f}")
 print(f"Max Drawdown: ${max_dd:,.2f}")
 print(f"Win Rate: {win_rate:.1f}%")
 ```
-
-
 ---
 
 ## Thank You
