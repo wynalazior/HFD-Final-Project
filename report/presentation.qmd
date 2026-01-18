@@ -1,0 +1,94 @@
+---
+title: "HFD Final Project – Group 1 (SP, NQ)"
+subtitle: "In-sample results (2023Q1–2025Q2)"
+author: "Krzysztof Nalazek, <Friend Name>"
+format:
+  revealjs:
+    slide-number: true
+    chalkboard: false
+    theme: simple
+    transition: fade
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Project setup
+
+- **Group:** 1 (SP, NQ), 1-minute data  
+- **Trading:** each asset traded separately, combined as portfolio  
+- **Constraints implemented:**
+  - exclude 9:31–9:40 and 15:51–16:00 from calculations (NaN)
+  - no trading 9:31–9:55
+  - exit all positions at 15:40 (no overnight)
+
+---
+
+## Strategies considered
+
+### Strategy 1 (Krzysztof): Opening Range Breakout (ORB)
+- Range built from **09:41–09:55**
+- Trade after 09:55 if price breaks range + ATR buffer
+- Low turnover (aims to survive costs)
+
+### Strategy 2 (Friend): Volatility Band / Regime strategy
+- Mean-reversion vs momentum regime switching
+- Uses rolling mean and volatility bands
+
+---
+
+## Data and libraries
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+REPO_ROOT = Path("..")  # because this qmd is in report/
+```
+
+## Strategy 1 results (ORB)
+
+```{python}
+orb_summary_path = REPO_ROOT / "Testing" / "outputs_orb_final" / "orb_final_summary.csv"
+orb_summary_path.exists(), orb_summary_path
+
+orb = pd.read_csv(orb_summary_path)
+orb.head()
+```
+
+## ORB summary table (by quarter)
+```{python}
+orb_assets = orb[orb["asset"].isin(["SP","NQ"])].copy()
+orb_assets
+
+orb_port = orb[orb["asset"]=="PORTFOLIO"].copy()
+orb_port
+```
+
+## ORB cumulative PnL plot (portfolio)
+```{python}
+out_dir = REPO_ROOT / "Testing" / "outputs_orb_final"
+daily_files = sorted(out_dir.glob("*_portfolio_daily.csv"))
+
+daily_all = []
+for fp in daily_files:
+    d = pd.read_csv(fp)
+    d["date"] = pd.to_datetime(d["date"])
+    daily_all.append(d)
+
+daily_all = pd.concat(daily_all).sort_values("date")
+daily_all["cum_gross"] = daily_all["gross_pnl"].cumsum()
+daily_all["cum_net"] = daily_all["net_pnl"].cumsum()
+
+plt.figure(figsize=(10,4))
+plt.plot(daily_all["date"], daily_all["cum_gross"], label="Gross cumPnL")
+plt.plot(daily_all["date"], daily_all["cum_net"], label="Net cumPnL")
+plt.legend()
+plt.title("Strategy 1 (ORB) – Portfolio cumulative PnL (daily)")
+plt.xlabel("Date")
+plt.ylabel("PnL ($)")
+plt.show()
+```
