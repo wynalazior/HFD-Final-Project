@@ -255,7 +255,6 @@ Krzysztof Nalazek, <friend name="">
 </ul>
 </div></div>
 <p><br></p>
-<p><strong>Focus of this presentation:</strong> Strategy 1 (ORB) detailed results</p>
 </section>
 <section id="strategy-1-opening-range-breakout-orb" class="slide level2">
 <h2>Strategy 1: Opening Range Breakout (ORB)</h2>
@@ -302,7 +301,7 @@ Krzysztof Nalazek, <friend name="">
 <li><strong>Selection</strong>: Based on VALIDATION performance</li>
 </ul>
 <p><strong>Optimal Parameters:</strong></p>
-<div id="3a905547" class="cell" data-execution_count="2">
+<div id="6d62edf2" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="co"># Best parameters (selected on validation)</span></span>
 <span id="cb1-2"><a href=""></a><span class="bu">print</span>(<span class="st">"SP: ATR_window=15, ATR_mult=0.0"</span>)</span>
 <span id="cb1-3"><a href=""></a><span class="bu">print</span>(<span class="st">"NQ: ATR_window=30, ATR_mult=0.2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -330,7 +329,7 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </section>
 <section id="orb-trainvalidationtest-performance" class="slide level2">
 <h2>ORB: Train/Validation/Test Performance</h2>
-<div id="531add71" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="3">
+<div id="69893e6a" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -349,8 +348,8 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </section>
 <section id="orb-key-performance-metrics" class="slide level2">
 <h2>ORB: Key Performance Metrics</h2>
-<div id="00e80e85" class="cell" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="13">
+<div id="1aeed4ee" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -414,7 +413,7 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </section>
 <section id="orb-cumulative-pnl-portfolio" class="slide level2">
 <h2>ORB: Cumulative PnL (Portfolio)</h2>
-<div id="24585409" class="cell" data-fig-height="4.5" data-fig-width="9" data-execution_count="5">
+<div id="9d680d34" class="cell" data-fig-height="4.5" data-fig-width="9" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -426,7 +425,7 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </section>
 <section id="orb-quarterly-performance-breakdown" class="slide level2">
 <h2>ORB: Quarterly Performance Breakdown</h2>
-<div id="ec20143e" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="6">
+<div id="68639169" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -438,8 +437,8 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </section>
 <section id="orb-per-asset-results" class="slide level2">
 <h2>ORB: Per-Asset Results</h2>
-<div id="d06911cc" class="cell" data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="16">
+<div id="e214dd10" class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -672,7 +671,7 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 <li>Excludes unreliable time windows</li>
 </ul>
 <p><strong>Overall STAT Score:</strong></p>
-<div id="62785056" class="cell" data-execution_count="8">
+<div id="423361fd" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a>overall_stat <span class="op">=</span> orb_port[<span class="st">"stat"</span>].<span class="bu">sum</span>()</span>
 <span id="cb3-2"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total STAT: </span><span class="sc">{</span>overall_stat<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -684,7 +683,7 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 <section id="conclusion-next-steps" class="slide level2">
 <h2>Conclusion &amp; Next Steps</h2>
 <p><strong>Strategy 1 (ORB) Performance:</strong></p>
-<div id="5d6b2e98" class="cell" data-execution_count="9">
+<div id="15807b18" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>Total Net PnL: $70,954.54
 Annualized Sharpe: 1.321

@@ -76,8 +76,6 @@ execute:
 
 <br>
 
-**Focus of this presentation:** Strategy 1 (ORB) detailed results
-
 ---
 
 ```{python}
