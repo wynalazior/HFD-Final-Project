@@ -1,0 +1,141 @@
+/*-- scss:defaults --*/
+
+// fonts
+$font-family-sans-serif: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$presentation-heading-font: "Segoe UI Semibold", sans-serif;
+
+// colors
+$body-bg: #ffffff;
+$body-color: #2c3e50;
+$link-color: #2c5aa0;
+$presentation-heading-color: #1a1a1a;
+
+// headings
+$presentation-h1-font-size: 2.2em;
+$presentation-h2-font-size: 1.6em;
+$presentation-h3-font-size: 1.3em;
+
+/*-- scss:rules --*/
+
+.reveal {
+  font-size: 28px;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  font-weight: 600;
+  text-transform: none;
+  margin-bottom: 0.3em;
+}
+
+.reveal h2 {
+  border-bottom: 3px solid #2c5aa0;
+  padding-bottom: 8px;
+  margin-bottom: 20px;
+}
+
+.reveal ul,
+.reveal ol {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+.reveal li {
+  margin-bottom: 0.2em;
+}
+
+.reveal strong {
+  color: #1a5490;
+  font-weight: 600;
+}
+
+.reveal .columns {
+  display: flex;
+  gap: 2em;
+}
+
+.reveal .column {
+  flex: 1;
+}
+
+// Code blocks
+.reveal pre {
+  width: 100%;
+  margin: 0.5em 0;
+  font-size: 0.55em;
+}
+
+.reveal code {
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.75em;
+}
+
+// Tables
+.reveal table {
+  margin: auto;
+  border-collapse: collapse;
+  font-size: 0.6em;
+  width: 95%;
+}
+
+.reveal table th {
+  background-color: #2c5aa0;
+  color: white;
+  font-weight: 600;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+}
+
+.reveal table td {
+  padding: 5px 8px;
+  border: 1px solid #ddd;
+}
+
+.reveal table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+// Images and figures
+.reveal img {
+  max-height: 450px;
+  max-width: 100%;
+  margin: auto;
+}
+
+.reveal figure {
+  margin: 0.5em 0;
+}
+
+// Better spacing
+.reveal section {
+  padding: 15px;
+}
+
+// Slide number styling
+.reveal .slide-number {
+  background-color: rgba(44, 90, 160, 0.8);
+  color: white;
+  font-size: 0.6em;
+  padding: 5px 10px;
+  border-radius: 3px;
+}
+
+// Custom class for metrics
+.metrics-box {
+  background-color: #f0f8ff;
+  border-left: 4px solid #2c5aa0;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 5px;
+}
+
+// Highlight boxes
+.callout-note {
+  background-color: #e7f3ff;
+  border-left: 4px solid #2c5aa0;
+  padding: 10px 15px;
+  margin: 10px 0;
+}
