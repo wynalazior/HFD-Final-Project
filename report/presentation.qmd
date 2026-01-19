@@ -209,6 +209,21 @@ $$\text{STAT} = (\text{Sharpe}_{\text{net}} - 0.5) \times \ln(|\text{Net PnL}/10
 - **Selection**: Based on VALIDATION performance
 
 
+:::
+
+::: {.column width="50%"}
+**Optimization Objective:**
+
+- We select parameters that maximize Net P&L (transaction costs included).
+- This penalizes over-trading automatically via per-trade costs.
+- Balances risk-adjusted and absolute returns
+
+**Methodology:**
+
+1. Evaluate all combinations on TRAIN.
+2. Use same quarter combination on next year. (Seasonality)
+3. Final evaluation on TEST
+
 **Optimal Parameters:**
 
 ```{python}
@@ -229,20 +244,6 @@ for _, r in best.iterrows():
     )
 
 ```
-:::
-
-::: {.column width="50%"}
-**Optimization Objective:**
-
-- We select parameters that maximize Net P&L (transaction costs included).
-- This penalizes over-trading automatically via per-trade costs.
-- Balances risk-adjusted and absolute returns
-
-**Methodology:**
-
-1. Evaluate all combinations on TRAIN.
-2. Use same quarter combination on next year. (Seasonality)
-3. Final evaluation on TEST
 :::
 :::
 

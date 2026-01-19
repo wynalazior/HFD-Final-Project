@@ -6,8 +6,8 @@
 <script src="presentation_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="presentation_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="presentation_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="presentation_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.8.27">
+<link href="presentation_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.25">
 
   <meta name="author" content="Krzysztof Nalazek, Shah">
   <meta name="dcterms.date" content="2026-01-01">
@@ -329,7 +329,7 @@ Krzysztof Nalazek, Shah
 <li><strong>Selection</strong>: Based on VALIDATION performance</li>
 </ul>
 <p><strong>Optimal Parameters:</strong></p>
-<div id="e3c5d8a0" class="cell" data-execution_count="2">
+<div id="c28d775e" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="co"># Best parameters (selected on validation)</span></span>
 <span id="cb1-2"><a href=""></a><span class="bu">print</span>(<span class="st">"SP: ATR_window=15, ATR_mult=0.0"</span>)</span>
 <span id="cb1-3"><a href=""></a><span class="bu">print</span>(<span class="st">"NQ: ATR_window=30, ATR_mult=0.2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -386,13 +386,6 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </li>
 <li><strong>Selection</strong>: Based on VALIDATION performance</li>
 </ul>
-<p><strong>Optimal Parameters:</strong></p>
-<div id="f201d65e" class="cell" data-execution_count="3">
-<div class="cell-output cell-output-stdout">
-<pre><code>NQ: SMA_win=360, slow_mult=3, slope_m=10, z_entry=1.6, z_stop=3.5, z_sl=2.0, z_mom=0.1, cooldown=5
-SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mom=0.05, cooldown=5</code></pre>
-</div>
-</div>
 </div><div class="column" style="width:50%;">
 <p><strong>Optimization Objective:</strong></p>
 <ul>
@@ -406,11 +399,18 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 <li>Use same quarter combination on next year. (Seasonality)</li>
 <li>Final evaluation on TEST</li>
 </ol>
+<p><strong>Optimal Parameters:</strong></p>
+<div id="8a499ff2" class="cell" data-execution_count="3">
+<div class="cell-output cell-output-stdout">
+<pre><code>NQ: SMA_win=360, slow_mult=3, slope_m=10, z_entry=1.6, z_stop=3.5, z_sl=2.0, z_mom=0.1, cooldown=5
+SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mom=0.05, cooldown=5</code></pre>
+</div>
+</div>
 </div></div>
 </section>
 <section id="orb-trainvalidationtest-performance" class="slide level2">
 <h2>ORB: Train/Validation/Test Performance</h2>
-<div id="153ed4aa" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="4">
+<div id="ba971b58" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -428,7 +428,7 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="z-guided-trend-trainvalidationtest-performance" class="slide level2">
 <h2>Z Guided Trend: Train/Validation/Test Performance</h2>
-<div id="5a173fbe" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="5">
+<div id="f36b9f01" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -446,8 +446,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="orb-key-performance-metrics" class="slide level2">
 <h2>ORB: Key Performance Metrics</h2>
-<div id="86e9ce09" class="cell" data-execution_count="6">
-<div class="cell-output cell-output-display" data-execution_count="6">
+<div id="3ffef047" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="40">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -511,8 +511,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="z-trend-key-performance-metrics" class="slide level2">
 <h2>Z Trend: Key Performance Metrics</h2>
-<div id="664e2baa" class="cell" data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div id="0e49baf5" class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="41">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -584,7 +584,7 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 <img data-src="presentation_files/figure-revealjs/cell-10-output-1.png" class="r-stretch"></section>
 <section id="orb-quarterly-performance-breakdown" class="slide level2">
 <h2>ORB: Quarterly Performance Breakdown</h2>
-<div id="0d9adc43" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="10">
+<div id="38ec8a13" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -596,7 +596,7 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="z-guided-trend-quarterly-performance-breakdown" class="slide level2">
 <h2>Z Guided Trend : Quarterly Performance Breakdown</h2>
-<div id="2b96dce6" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="11">
+<div id="e4a1771c" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -608,8 +608,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="orb-per-asset-results" class="slide level2">
 <h2>ORB: Per-Asset Results</h2>
-<div id="26bee3f5" class="cell" data-execution_count="12">
-<div class="cell-output cell-output-display" data-execution_count="12">
+<div id="9c9147d5" class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="46">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -818,8 +818,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="z-guided-trend-per-asset-results" class="slide level2">
 <h2>Z Guided Trend: Per-Asset Results</h2>
-<div id="fd2323fe" class="cell" data-execution_count="13">
-<div class="cell-output cell-output-display" data-execution_count="13">
+<div id="9b0ab7a8" class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="47">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -1007,7 +1007,7 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 <li>Excludes unreliable time windows</li>
 </ul>
 <p><strong>Overall Portfolio Performance:</strong></p>
-<div id="077c8c49" class="cell" data-execution_count="14">
+<div id="f43ce4bb" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a>overall_stat <span class="op">=</span> orb_port[<span class="st">"stat"</span>].<span class="bu">sum</span>()</span>
 <span id="cb4-2"><a href=""></a>overall_pnl <span class="op">=</span> orb_port[<span class="st">"net_cumPnL"</span>].<span class="bu">sum</span>()</span>
 <span id="cb4-3"><a href=""></a>overall_sharpe <span class="op">=</span> orb_port[<span class="st">"netSR"</span>].mean()</span>
@@ -1049,7 +1049,7 @@ Avg Net Sharpe: 1.287</code></pre>
 <li>Transaction costs included in net P&amp;L</li>
 </ul>
 <p><strong>Overall Portfolio Performance:</strong></p>
-<div id="99eaae46" class="cell" data-execution_count="15">
+<div id="87cbe2fb" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb6-2"><a href=""></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
 <span id="cb6-3"><a href=""></a></span>
@@ -1076,7 +1076,7 @@ Avg Net Sharpe: 2.833</code></pre>
 </section>
 <section id="strategy-comparison-orb-vs-z-guided-trend" class="slide level2">
 <h2>Strategy Comparison: ORB vs Z Guided Trend</h2>
-<div id="8a961c74" class="cell" data-fig-height="5" data-fig-width="10" data-execution_count="16">
+<div id="e2f98c4f" class="cell" data-fig-height="5" data-fig-width="10" data-execution_count="16">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -1088,8 +1088,8 @@ Avg Net Sharpe: 2.833</code></pre>
 </section>
 <section id="final-comparison-key-metrics" class="slide level2">
 <h2>Final Comparison: Key Metrics</h2>
-<div id="ff421969" class="cell" data-execution_count="17">
-<div class="cell-output cell-output-display" data-execution_count="17">
+<div id="be338bde" class="cell" data-execution_count="17">
+<div class="cell-output cell-output-display" data-execution_count="51">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
