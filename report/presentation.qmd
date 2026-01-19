@@ -1,0 +1,397 @@
+---
+title: "HFD Final Project – Group 1"
+subtitle: "Opening Range Breakout Strategy for SP & NQ Futures"
+author: "Krzysztof Nalazek, Shah"
+date: "January 2026"
+format:
+  revealjs:
+    slide-number: true
+    chalkboard: false
+    theme: [default, custom.scss]
+    transition: slide
+    background-transition: fade
+    scrollable: false
+    smaller: true
+    fig-width: 8
+    fig-height: 3.5
+    fig-align: center
+    incremental: false
+    code-fold: false
+    code-overflow: wrap
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Project Setup
+
+:::: {.columns}
+::: {.column width="50%"}
+**Data Specifications:**
+
+- **Assets:** S&P 500 (SP) & NASDAQ (NQ)  
+- **Frequency:** 1-minute bars
+- **Period:** 2023 Q1 – 2025 Q2
+- **Trading:** Separate signals, portfolio aggregation
+:::
+
+::: {.column width="50%"}
+**Trading Constraints:**
+
+- **Excluded windows:** 9:31–9:40, 15:51–16:00
+- **No trading:** 9:31–9:55 (volatility buffer)
+- **Forced flat:** 15:40 onwards
+- **No overnight positions**
+:::
+::::
+
+---
+
+## Strategy Overview
+
+:::: {.columns}
+::: {.column width="50%"}
+### Strategy 1: Opening Range Breakout
+
+**Key Features:**
+
+- Opening range: 09:41–09:55
+- Breakout entry with ATR buffer
+- Mean-reversion exits
+- Low turnover design
+:::
+
+::: {.column width="50%"}
+### Strategy 2: Volatility Bands (Strategy 02 — Syed Shah)
+
+**Key Features:**
+
+- Trend-following entries (SMA vs SMA_slow level + slope gate)
+- z-score entry with z-momentum confirmation (z accelerating into entry)
+- Hard constraints: no-trade window, no new entries after 14:30, forced flat from 15:40
+- Risk controls: z stop-loss + extreme z stop, cooldown after exits (reduces churn)
+:::
+<br>
+
+---
+
+```{python}
+#| include: false
+
+# Setup: Load libraries and data
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+REPO_ROOT = Path("..")
+
+# Load ORB results
+orb_summary_path = REPO_ROOT / "Testing" / "outputs_orb_final" / "orb_final_summary.csv"
+orb = pd.read_csv(orb_summary_path)
+```
+
+## Strategy 1: Opening Range Breakout (ORB)
+
+**Core Algorithm:**
+
+1. **Opening Range Definition** (09:41–09:55)
+   - Calculate High/Low during opening period
+   - Forms baseline for breakout detection
+
+2. **Entry Logic** (after 09:55)
+   - **Long**: Price > Range_High + (ATR × Multiplier)
+   - **Short**: Price < Range_Low - (ATR × Multiplier)
+   
+3. **Exit Logic**
+   - Mean reversion: Exit when price returns inside range
+   - Forced flat at 15:40 (no overnight risk)
+
+4. **Risk Controls**
+   - One entry per day (prevents overtrading)
+   - Volatility-adjusted thresholds (ATR)
+   - Transaction cost awareness
+
+## ORB: Parameter Optimization
+
+::: {.columns}
+::: {.column width="50%"}
+**3-Way Data Split:**
+
+- **Training** (4 qtrs): 2023_Q1, Q3, 2024_Q2, Q4
+- **Validation** (2 qtrs): 2023_Q4, 2025_Q1  
+- **Test** (1 qtr): 2025_Q2
+
+**Grid Search:**
+
+- **ATR Window**: [15, 30, 60] minutes
+- **ATR Multiplier**: [0.0, 0.05, 0.10, 0.15, 0.20]
+- **Selection**: Based on VALIDATION performance
+
+**Optimal Parameters:**
+
+```{python}
+#| echo: true
+# Best parameters (selected on validation)
+print("SP: ATR_window=15, ATR_mult=0.0")
+print("NQ: ATR_window=30, ATR_mult=0.2")
+```
+:::
+
+::: {.column width="50%"}
+**STAT Metric:**
+
+$$\text{STAT} = (\text{Sharpe}_{\text{net}} - 0.5) \times \ln(|\text{Net PnL}/1000|)$$
+
+- Penalizes low Sharpe ratios
+- Rewards larger absolute PnL
+- Balances risk-adjusted and absolute returns
+
+**Methodology:**
+
+1. Evaluate all combinations on TRAIN
+2. Select best based on VALIDATION  
+3. Final evaluation on TEST (unseen)
+:::
+:::
+
+---
+
+## ORB: Train/Validation/Test Performance
+
+```{python}
+#| fig-width: 9
+#| fig-height: 4
+
+import matplotlib.pyplot as plt
+from matplotlib.image import imread
+
+# Load and display the train/val/test comparison
+img_path = REPO_ROOT / "Testing" / "outputs_orb_final" / "train_val_test.png"
+if img_path.exists():
+    img = imread(img_path)
+    fig, ax = plt.subplots(figsize=(9, 4))
+    ax.imshow(img)
+    ax.axis('off')
+    plt.tight_layout()
+    plt.show()
+else:
+    print("Train/Val/Test visualization not found")
+```
+
+**Key Observations:**
+
+- Parameters selected based on VALIDATION performance (not training)
+- TEST quarter (2025_Q2) is completely unseen during optimization
+- Performance degradation from train → validation → test expected
+- Large gap suggests strategy may not generalize well
+
+---
+
+## ORB: Key Performance Metrics
+
+```{python}
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
+# Load data
+out_dir = REPO_ROOT / "Testing" / "outputs_orb_final"
+daily_files = sorted(out_dir.glob("*_portfolio_daily.csv"))
+
+daily_all = []
+for fp in daily_files:
+    d = pd.read_csv(fp)
+    d["date"] = pd.to_datetime(d["date"])
+    daily_all.append(d)
+
+daily_all = pd.concat(daily_all).sort_values("date")
+daily_all["cum_gross"] = daily_all["gross_pnl"].cumsum()
+daily_all["cum_net"] = daily_all["net_pnl"].cumsum()
+
+# Calculate metrics
+total_net_pnl = daily_all["net_pnl"].sum()
+sharpe = daily_all["net_pnl"].mean() / daily_all["net_pnl"].std() * np.sqrt(252)
+cum_pnl = daily_all["cum_net"]
+max_dd = (cum_pnl - cum_pnl.cummax()).min()
+calmar = (daily_all["net_pnl"].mean() * 252) / abs(max_dd) if max_dd != 0 else np.nan
+win_rate = (daily_all["net_pnl"] > 0).sum() / len(daily_all) * 100
+
+# Display metrics
+metrics_df = pd.DataFrame({
+    'Metric': ['Total Net PnL', 'Annualized Sharpe', 'Annualized Calmar', 
+               'Max Drawdown', 'Win Rate', 'Total Days'],
+    'Value': [f'${total_net_pnl:,.2f}', f'{sharpe:.3f}', f'{calmar:.3f}',
+              f'${max_dd:,.2f}', f'{win_rate:.1f}%', f'{len(daily_all)}']
+})
+metrics_df
+```
+
+---
+
+## ORB: Cumulative PnL (Portfolio)
+
+```{python}
+#| fig-width: 9
+#| fig-height: 4.5
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 4.5), sharex=True)
+
+# Cumulative PnL
+ax1.plot(daily_all["date"], daily_all["cum_gross"], label="Gross PnL", linewidth=2, alpha=0.7)
+ax1.plot(daily_all["date"], daily_all["cum_net"], label="Net PnL", linewidth=2)
+ax1.axhline(0, color='red', linestyle='--', alpha=0.5)
+ax1.set_ylabel("Cumulative PnL ($)")
+ax1.set_title("Strategy 1 (ORB) – Portfolio Performance", fontweight='bold')
+ax1.legend(loc='upper left')
+ax1.grid(True, alpha=0.3)
+
+# Daily PnL bars
+colors = ['green' if x >= 0 else 'red' for x in daily_all["net_pnl"]]
+ax2.bar(daily_all["date"], daily_all["net_pnl"], color=colors, alpha=0.6, width=0.8)
+ax2.axhline(0, color='black', linestyle='-', linewidth=0.8)
+ax2.set_ylabel("Daily PnL ($)")
+ax2.set_xlabel("Date")
+ax2.grid(True, alpha=0.3, axis='y')
+ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+
+plt.tight_layout()
+plt.show()
+```
+
+---
+
+## ORB: Quarterly Performance Breakdown
+
+```{python}
+#| fig-width: 9
+#| fig-height: 5
+
+orb_port = orb[orb["asset"]=="PORTFOLIO"].copy()
+
+fig, axes = plt.subplots(2, 2, figsize=(9, 5))
+
+# 1. Net PnL by Quarter
+ax1 = axes[0, 0]
+quarters = orb_port["quarter"].tolist()
+net_pnls = orb_port["net_cumPnL"].tolist()
+colors_bars = ['green' if x >= 0 else 'red' for x in net_pnls]
+ax1.bar(range(len(quarters)), net_pnls, color=colors_bars, alpha=0.7)
+ax1.set_xticks(range(len(quarters)))
+ax1.set_xticklabels(quarters, rotation=45, ha='right', fontsize=8)
+ax1.axhline(0, color='black', linestyle='-', linewidth=0.8)
+ax1.set_title("Net PnL by Quarter", fontsize=10, fontweight='bold')
+ax1.set_ylabel("Net PnL ($)", fontsize=9)
+ax1.grid(True, alpha=0.3, axis='y')
+
+# 2. Sharpe Ratio by Quarter
+ax2 = axes[0, 1]
+sharpes = orb_port["netSR"].tolist()
+ax2.bar(range(len(quarters)), sharpes, color='steelblue', alpha=0.7)
+ax2.set_xticks(range(len(quarters)))
+ax2.set_xticklabels(quarters, rotation=45, ha='right', fontsize=8)
+ax2.axhline(0, color='black', linestyle='-', linewidth=0.8)
+ax2.set_title("Sharpe Ratio by Quarter", fontsize=10, fontweight='bold')
+ax2.set_ylabel("Sharpe Ratio", fontsize=9)
+ax2.grid(True, alpha=0.3, axis='y')
+
+# 3. Calmar Ratio by Quarter  
+ax3 = axes[1, 0]
+calmars = orb_port["netCR"].tolist()
+ax3.bar(range(len(quarters)), calmars, color='darkorange', alpha=0.7)
+ax3.set_xticks(range(len(quarters)))
+ax3.set_xticklabels(quarters, rotation=45, ha='right', fontsize=8)
+ax3.axhline(0, color='black', linestyle='-', linewidth=0.8)
+ax3.set_title("Calmar Ratio by Quarter", fontsize=10, fontweight='bold')
+ax3.set_ylabel("Calmar Ratio", fontsize=9)
+ax3.grid(True, alpha=0.3, axis='y')
+
+# 4. STAT Score by Quarter
+ax4 = axes[1, 1]
+stats = orb_port["stat"].tolist()
+ax4.bar(range(len(quarters)), stats, color='purple', alpha=0.7)
+ax4.set_xticks(range(len(quarters)))
+ax4.set_xticklabels(quarters, rotation=45, ha='right', fontsize=8)
+ax4.axhline(0, color='black', linestyle='-', linewidth=0.8)
+ax4.set_title("STAT Score by Quarter", fontsize=10, fontweight='bold')
+ax4.set_ylabel("STAT Score", fontsize=9)
+ax4.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+```
+
+---
+
+## ORB: Per-Asset Results
+
+```{python}
+orb_assets = orb[orb["asset"].isin(["SP","NQ"])].copy()
+
+# Format for better readability
+display_cols = ['quarter', 'asset', 'atr_window', 'atr_mult', 
+                'netSR', 'netCR', 'net_cumPnL', 'av.ntrades', 'stat']
+orb_display = orb_assets[display_cols].copy()
+orb_display['net_cumPnL'] = orb_display['net_cumPnL'].apply(lambda x: f'${x:,.0f}')
+orb_display['netSR'] = orb_display['netSR'].apply(lambda x: f'{x:.3f}')
+orb_display['netCR'] = orb_display['netCR'].apply(lambda x: f'{x:.3f}')
+orb_display['av.ntrades'] = orb_display['av.ntrades'].apply(lambda x: f'{x:.1f}')
+orb_display['stat'] = orb_display['stat'].apply(lambda x: f'{x:.4f}')
+orb_display
+```
+
+---
+
+## ORB: Strategy Summary
+
+::: {.columns}
+::: {.column width="50%"}
+**Strengths:**
+
+- Consistent positive returns across most quarters
+- Low turnover (controlled transaction costs)
+- Clear entry/exit rules
+- Adapts to volatility via ATR
+
+**Key Observations:**
+
+- Strategy performs well in trending markets
+- ATR filter effectively reduces false breakouts
+- Mean-reversion exit manages risk
+:::
+
+::: {.column width="50%"}
+**Risk Management:**
+
+- No overnight positions (flat at 15:40)
+- One entry per day (prevents overtrading)
+- Volatility-adjusted thresholds
+- Excludes unreliable time windows
+
+**Overall STAT Score:**
+
+```{python}
+#| echo: true
+overall_stat = orb_port["stat"].sum()
+print(f"Total STAT: {overall_stat:.4f}")
+```
+:::
+:::
+
+---
+
+## Conclusion & Next Steps
+
+**Strategy 1 (ORB) Performance:**
+
+```{python}
+print(f"Total Net PnL: ${total_net_pnl:,.2f}")
+print(f"Annualized Sharpe: {sharpe:.3f}")
+print(f"Max Drawdown: ${max_dd:,.2f}")
+print(f"Win Rate: {win_rate:.1f}%")
+```
+---
+
+## Thank You
+
+Questions?
