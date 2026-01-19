@@ -6,8 +6,8 @@
 <script src="presentation_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="presentation_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="presentation_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="presentation_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.8.25">
+<link href="presentation_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.27">
 
   <meta name="author" content="Krzysztof Nalazek, Shah">
   <meta name="dcterms.date" content="2026-01-01">
@@ -329,7 +329,7 @@ Krzysztof Nalazek, Shah
 <li><strong>Selection</strong>: Based on VALIDATION performance</li>
 </ul>
 <p><strong>Optimal Parameters:</strong></p>
-<div id="7a5130e2" class="cell" data-execution_count="2">
+<div id="e3c5d8a0" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="co"># Best parameters (selected on validation)</span></span>
 <span id="cb1-2"><a href=""></a><span class="bu">print</span>(<span class="st">"SP: ATR_window=15, ATR_mult=0.0"</span>)</span>
 <span id="cb1-3"><a href=""></a><span class="bu">print</span>(<span class="st">"NQ: ATR_window=30, ATR_mult=0.2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -359,10 +359,12 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 <h2>Z Guided Trend: Parameter Optimization</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
-<p><strong>Train-Test Split:</strong></p>
+<p><strong>Train/Val/Test Split:</strong></p>
 <ul>
-<li><strong>Training</strong> (4 qtrs): 2023_Q1, Q3, 2024_Q2, Q4</li>
-<li><strong>Test</strong> (1 qtr): 2025_Q2</li>
+<li><strong>Training</strong> (5 qtrs): 2023_Q1, Q3, Q4, 2024_Q4, 2025_Q1</li>
+<li><strong>Validation</strong> (1 qtr): 2024_Q2<br>
+</li>
+<li><strong>Test</strong> (1 qtr): 2025_Q2 (completely unseen)</li>
 </ul>
 <p><strong>Grid Search:</strong></p>
 <ul>
@@ -385,7 +387,7 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 <li><strong>Selection</strong>: Based on VALIDATION performance</li>
 </ul>
 <p><strong>Optimal Parameters:</strong></p>
-<div id="c85bdadb" class="cell" data-execution_count="3">
+<div id="f201d65e" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-stdout">
 <pre><code>NQ: SMA_win=360, slow_mult=3, slope_m=10, z_entry=1.6, z_stop=3.5, z_sl=2.0, z_mom=0.1, cooldown=5
 SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mom=0.05, cooldown=5</code></pre>
@@ -408,7 +410,7 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="orb-trainvalidationtest-performance" class="slide level2">
 <h2>ORB: Train/Validation/Test Performance</h2>
-<div id="3dd09131" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="4">
+<div id="153ed4aa" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -421,17 +423,16 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 <ul>
 <li>Parameters selected based on VALIDATION performance (not training)</li>
 <li>TEST quarter (2025_Q2) is completely unseen during optimization</li>
-<li>Performance degradation from train → validation → test expected</li>
-<li>Large gap suggests strategy may not generalize well</li>
+<li>Performance degradation from train → validation → test expected, but not reported</li>
 </ul>
 </section>
 <section id="z-guided-trend-trainvalidationtest-performance" class="slide level2">
 <h2>Z Guided Trend: Train/Validation/Test Performance</h2>
-<div id="9fe0cd73" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="5">
+<div id="5a173fbe" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="presentation_files/figure-revealjs/cell-6-output-1.png" width="1142" height="355"></p>
+<p><img data-src="presentation_files/figure-revealjs/cell-6-output-1.png" width="854" height="253"></p>
 </figure>
 </div>
 </div>
@@ -445,8 +446,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="orb-key-performance-metrics" class="slide level2">
 <h2>ORB: Key Performance Metrics</h2>
-<div id="60967be3" class="cell" data-execution_count="6">
-<div class="cell-output cell-output-display" data-execution_count="38">
+<div id="86e9ce09" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -510,8 +511,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="z-trend-key-performance-metrics" class="slide level2">
 <h2>Z Trend: Key Performance Metrics</h2>
-<div id="40bba45b" class="cell" data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="39">
+<div id="664e2baa" class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -573,33 +574,17 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </div>
 </div>
 </section>
-<section id="orb-cumulative-pnl-portfolio" class="slide level2">
-<h2>ORB: Cumulative PnL (Portfolio)</h2>
-<div id="3d7c9779" class="cell" data-fig-height="4.5" data-fig-width="9" data-execution_count="8">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="presentation_files/figure-revealjs/cell-9-output-1.png" width="854" height="422"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="z-guided-trend-cumulative-pnl-portfolio" class="slide level2">
-<h2>Z Guided Trend : Cumulative PnL (Portfolio)</h2>
-<div id="1c803bc3" class="cell" data-fig-height="4.5" data-fig-width="9" data-execution_count="9">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="presentation_files/figure-revealjs/cell-10-output-1.png" width="854" height="422"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
+<section id="orb-portfolio-performance" class="slide level2">
+<h2>ORB: Portfolio Performance</h2>
+
+<img data-src="presentation_files/figure-revealjs/cell-9-output-1.png" class="r-stretch"></section>
+<section id="z-guided-trend-portfolio-performance" class="slide level2">
+<h2>Z Guided Trend : Portfolio Performance</h2>
+
+<img data-src="presentation_files/figure-revealjs/cell-10-output-1.png" class="r-stretch"></section>
 <section id="orb-quarterly-performance-breakdown" class="slide level2">
 <h2>ORB: Quarterly Performance Breakdown</h2>
-<div id="a430153a" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="10">
+<div id="0d9adc43" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -611,7 +596,7 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="z-guided-trend-quarterly-performance-breakdown" class="slide level2">
 <h2>Z Guided Trend : Quarterly Performance Breakdown</h2>
-<div id="ccfe8df5" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="11">
+<div id="2b96dce6" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -623,8 +608,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="orb-per-asset-results" class="slide level2">
 <h2>ORB: Per-Asset Results</h2>
-<div id="4e21c3cf" class="cell" data-execution_count="12">
-<div class="cell-output cell-output-display" data-execution_count="44">
+<div id="26bee3f5" class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="12">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -833,8 +818,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 </section>
 <section id="z-guided-trend-per-asset-results" class="slide level2">
 <h2>Z Guided Trend: Per-Asset Results</h2>
-<div id="35986ae4" class="cell" data-execution_count="13">
-<div class="cell-output cell-output-display" data-execution_count="45">
+<div id="fd2323fe" class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="13">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -1021,12 +1006,18 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 <li>Volatility-adjusted thresholds</li>
 <li>Excludes unreliable time windows</li>
 </ul>
-<p><strong>Overall STAT Score:</strong></p>
-<div id="de754c7e" class="cell" data-execution_count="14">
+<p><strong>Overall Portfolio Performance:</strong></p>
+<div id="077c8c49" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a>overall_stat <span class="op">=</span> orb_port[<span class="st">"stat"</span>].<span class="bu">sum</span>()</span>
-<span id="cb4-2"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total STAT: </span><span class="sc">{</span>overall_stat<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-2"><a href=""></a>overall_pnl <span class="op">=</span> orb_port[<span class="st">"net_cumPnL"</span>].<span class="bu">sum</span>()</span>
+<span id="cb4-3"><a href=""></a>overall_sharpe <span class="op">=</span> orb_port[<span class="st">"netSR"</span>].mean()</span>
+<span id="cb4-4"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total Net PnL: $</span><span class="sc">{</span>overall_pnl<span class="sc">:,.2f}</span><span class="ss">"</span>)</span>
+<span id="cb4-5"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total STAT Score: </span><span class="sc">{</span>overall_stat<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb4-6"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Avg Net Sharpe: </span><span class="sc">{</span>overall_sharpe<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Total STAT: 16.6499</code></pre>
+<pre><code>Total Net PnL: $70,954.54
+Total STAT Score: 16.6499
+Avg Net Sharpe: 1.287</code></pre>
 </div>
 </div>
 </div></div>
@@ -1057,8 +1048,8 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 <li>Stop-loss in z-space + extreme z exits</li>
 <li>Transaction costs included in net P&amp;L</li>
 </ul>
-<p><strong>Overall Net Performance (PORTFOLIO):</strong></p>
-<div id="fa5f8d4e" class="cell" data-execution_count="15">
+<p><strong>Overall Portfolio Performance:</strong></p>
+<div id="99eaae46" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb6-2"><a href=""></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
 <span id="cb6-3"><a href=""></a></span>
@@ -1067,24 +1058,109 @@ SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mo
 <span id="cb6-6"><a href=""></a>perf <span class="op">=</span> pd.read_csv(OUT_DIR <span class="op">/</span> <span class="st">"strategy02_perf.csv"</span>)</span>
 <span id="cb6-7"><a href=""></a></span>
 <span id="cb6-8"><a href=""></a>port <span class="op">=</span> perf[perf[<span class="st">"asset"</span>]<span class="op">==</span><span class="st">"PORTFOLIO"</span>]</span>
-<span id="cb6-9"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total Net PnL: $</span><span class="sc">{</span>port[<span class="st">'net_cumPnL'</span>]<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,.0f}</span><span class="ss">"</span>)</span>
-<span id="cb6-10"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Avg Net Sharpe (quarter avg): </span><span class="sc">{</span>port[<span class="st">'netSR'</span>]<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-9"><a href=""></a>overall_pnl <span class="op">=</span> port[<span class="st">'net_cumPnL'</span>].<span class="bu">sum</span>()</span>
+<span id="cb6-10"><a href=""></a>overall_sharpe <span class="op">=</span> port[<span class="st">'netSR'</span>].mean()</span>
+<span id="cb6-11"><a href=""></a><span class="co"># Calculate STAT for Strategy 2</span></span>
+<span id="cb6-12"><a href=""></a>overall_stat <span class="op">=</span> <span class="bu">sum</span>([(sr <span class="op">-</span> <span class="fl">0.5</span>) <span class="op">*</span> np.log(<span class="bu">abs</span>(pnl<span class="op">/</span><span class="dv">1000</span>)) <span class="cf">if</span> pnl <span class="op">!=</span> <span class="dv">0</span> <span class="kw">and</span> np.isfinite(sr) <span class="cf">else</span> <span class="dv">0</span> </span>
+<span id="cb6-13"><a href=""></a>                    <span class="cf">for</span> sr, pnl <span class="kw">in</span> <span class="bu">zip</span>(port[<span class="st">'netSR'</span>], port[<span class="st">'net_cumPnL'</span>])])</span>
+<span id="cb6-14"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total Net PnL: $</span><span class="sc">{</span>overall_pnl<span class="sc">:,.2f}</span><span class="ss">"</span>)</span>
+<span id="cb6-15"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total STAT Score: </span><span class="sc">{</span>overall_stat<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb6-16"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Avg Net Sharpe: </span><span class="sc">{</span>overall_sharpe<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Total Net PnL: $193,456
-Avg Net Sharpe (quarter avg): 2.833</code></pre>
+<pre><code>Total Net PnL: $193,456.15
+Total STAT Score: 56.8480
+Avg Net Sharpe: 2.833</code></pre>
 </div>
 </div>
 </div></div>
 </section>
-<section id="conclusion-next-steps" class="slide level2">
-<h2>Conclusion &amp; Next Steps</h2>
-<p><strong>Strategy 1 (ORB) Performance:</strong></p>
-<div id="82ca99f1" class="cell" data-execution_count="16">
-<div class="cell-output cell-output-stdout">
-<pre><code>Total Net PnL: $193,456.15
-Annualized Sharpe: 2.694
-Max Drawdown: $-20,166.26
-Win Rate: 34.7%</code></pre>
+<section id="strategy-comparison-orb-vs-z-guided-trend" class="slide level2">
+<h2>Strategy Comparison: ORB vs Z Guided Trend</h2>
+<div id="8a961c74" class="cell" data-fig-height="5" data-fig-width="10" data-execution_count="16">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="presentation_files/figure-revealjs/cell-17-output-1.png" width="949" height="482"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="final-comparison-key-metrics" class="slide level2">
+<h2>Final Comparison: Key Metrics</h2>
+<div id="ff421969" class="cell" data-execution_count="17">
+<div class="cell-output cell-output-display" data-execution_count="17">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+
+<table class="dataframe caption-top" data-border="1">
+<thead>
+<tr class="header" style="text-align: right;">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Metric</th>
+<th data-quarto-table-cell-role="th">Z Guided Trend</th>
+<th data-quarto-table-cell-role="th">ORB</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Total Net PnL</td>
+<td>$193,456.15</td>
+<td>$70,954.54</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Total STAT Score</td>
+<td>56.8480</td>
+<td>16.6499</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Average Sharpe Ratio</td>
+<td>2.833</td>
+<td>1.287</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Average Calmar Ratio</td>
+<td>13.013</td>
+<td>5.011</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>Quarters Profitable</td>
+<td>7/7</td>
+<td>6/7</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>Best Quarter PnL</td>
+<td>$42,306.04</td>
+<td>$20,317.28</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>Worst Quarter PnL</td>
+<td>$3,568.43</td>
+<td>$-1,146.98</td>
+</tr>
+</tbody>
+</table>
+
+</div>
 </div>
 </div>
 </section>

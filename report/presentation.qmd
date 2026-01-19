@@ -190,10 +190,11 @@ $$\text{STAT} = (\text{Sharpe}_{\text{net}} - 0.5) \times \ln(|\text{Net PnL}/10
 
 ::: {.columns}
 ::: {.column width="50%"}
-**Train-Test Split:**
+**Train/Val/Test Split:**
 
-- **Training** (4 qtrs): 2023_Q1, Q3, 2024_Q2, Q4 
-- **Test** (1 qtr): 2025_Q2
+- **Training** (5 qtrs): 2023_Q1, Q3, Q4, 2024_Q4, 2025_Q1
+- **Validation** (1 qtr): 2024_Q2  
+- **Test** (1 qtr): 2025_Q2 (completely unseen)
 
 **Grid Search:**
 
@@ -273,8 +274,7 @@ else:
 
 - Parameters selected based on VALIDATION performance (not training)
 - TEST quarter (2025_Q2) is completely unseen during optimization
-- Performance degradation from train → validation → test expected
-- Large gap suggests strategy may not generalize well
+- Performance degradation from train → validation → test expected, but not reported
 
 ---
 
@@ -283,52 +283,21 @@ else:
 ```{python}
 #| fig-width: 9
 #| fig-height: 4
-import numpy as np
-import pandas as pd
+
 import matplotlib.pyplot as plt
-from pathlib import Path
+from matplotlib.image import imread
 
-train_perf = pd.read_csv(Path("../Testing/outputs_strategy02/strategy02_perf.csv"))
-test_perf  = pd.read_csv(Path("../Testing/outputs_strategy02/strategy02_perf_OOS.csv"))
-
-trainp = train_perf[train_perf["asset"] == "NQ"].copy()
-testp  = test_perf[test_perf["asset"] == "NQ"].copy()
-
-if trainp.empty:
-    raise ValueError("No NQ rows in strategy02_perf.csv")
-if testp.empty:
-    raise ValueError("No NQ rows in strategy02_perf_OOS.csv")
-
-TRAIN_Q = ["data1_2023_Q1", "data1_2023_Q3", "data1_2024_Q2", "data1_2024_Q4"]
-TEST_Q  = ["data1_2025_Q2"]
-
-train = trainp[trainp["quarter"].isin(TRAIN_Q)]
-test  = testp[testp["quarter"].isin(TEST_Q)]
-
-train_net_pnl = float(train["net_cumPnL"].sum())
-test_net_pnl  = float(test["net_cumPnL"].sum())
-
-train_sharpe = float(np.mean(train["netSR"])) if len(train) else np.nan
-test_sharpe  = float(np.mean(test["netSR"]))  if len(test)  else np.nan
-
-labels = ["Training", "Test (OOS)"]
-net_vals = [train_net_pnl, test_net_pnl]
-sr_vals  = [train_sharpe, test_sharpe]
-
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 3.8))
-
-ax1.bar(labels, net_vals)
-ax1.set_title("Net PnL: Train / Out-of-Sample Test")
-ax1.grid(True, axis="y", alpha=0.3)
-
-ax2.bar(labels, sr_vals)
-ax2.set_title("Sharpe: Train / Out-of-Sample Test")
-ax2.grid(True, axis="y", alpha=0.3)
-
-plt.tight_layout()
-plt.show()
-
-
+# Load and display the train/val/test comparison
+img_path = REPO_ROOT / "Testing" / "outputs_strategy02" / "train_val_test.png"
+if img_path.exists():
+    img = imread(img_path)
+    fig, ax = plt.subplots(figsize=(9, 4))
+    ax.imshow(img)
+    ax.axis('off')
+    plt.tight_layout()
+    plt.show()
+else:
+    print("Train/Val/Test visualization not found")
 ```
 
 **Key Observations:**
@@ -420,87 +389,39 @@ pd.DataFrame({
 ```
 
 
-## ORB: Cumulative PnL (Portfolio)
+## ORB: Portfolio Performance
 
 ```{python}
 #| fig-width: 9
-#| fig-height: 4.5
+#| fig-height: 6
+from pathlib import Path
+from IPython.display import Image, display
 
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 4.5), sharex=True)
+REPO_ROOT = Path.cwd().parent
+img_path = REPO_ROOT / "Testing" / "outputs_orb_final" / "portfolio_performance.png"
 
-# Cumulative PnL
-ax1.plot(daily_all["date"], daily_all["cum_gross"], label="Gross PnL", linewidth=2, alpha=0.7)
-ax1.plot(daily_all["date"], daily_all["cum_net"], label="Net PnL", linewidth=2)
-ax1.axhline(0, color='red', linestyle='--', alpha=0.5)
-ax1.set_ylabel("Cumulative PnL ($)")
-ax1.set_title("Strategy 1 (ORB) – Portfolio Performance", fontweight='bold')
-ax1.legend(loc='upper left')
-ax1.grid(True, alpha=0.3)
-
-# Daily PnL bars
-colors = ['green' if x >= 0 else 'red' for x in daily_all["net_pnl"]]
-ax2.bar(daily_all["date"], daily_all["net_pnl"], color=colors, alpha=0.6, width=0.8)
-ax2.axhline(0, color='black', linestyle='-', linewidth=0.8)
-ax2.set_ylabel("Daily PnL ($)")
-ax2.set_xlabel("Date")
-ax2.grid(True, alpha=0.3, axis='y')
-ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
-
-plt.tight_layout()
-plt.show()
+if img_path.exists():
+    display(Image(filename=str(img_path)))
+else:
+    print(f"Image not found: {img_path}")
 ```
 
 ---
 
-## Z Guided Trend : Cumulative PnL (Portfolio)
+## Z Guided Trend : Portfolio Performance
 ```{python}
 #| fig-width: 9
-#| fig-height: 4.5
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+#| fig-height: 6
 from pathlib import Path
+from IPython.display import Image, display
 
-BASE_DIR = Path.cwd()  # .../HFD-Final-Project/report
-OUT_DIR  = BASE_DIR.parent / "Testing" / "outputs_strategy02"
+REPO_ROOT = Path.cwd().parent
+img_path = REPO_ROOT / "Testing" / "outputs_strategy02" / "portfolio_performance.png"
 
-daily_files = sorted(OUT_DIR.glob("data1_*_PORTFOLIO_daily.csv"))
-if not daily_files:
-    raise ValueError(f"No data1_*_PORTFOLIO_daily.csv files found in {OUT_DIR}. BASE_DIR={BASE_DIR}")
-
-daily_all = []
-for fp in daily_files:
-    d = pd.read_csv(fp)
-    d["date"] = pd.to_datetime(d["date"])
-    d["quarter"] = fp.name.replace("_PORTFOLIO_daily.csv", "")
-    daily_all.append(d[["date", "gross_pnl", "net_pnl", "trades", "quarter"]])
-
-daily_all = pd.concat(daily_all, ignore_index=True).sort_values("date")
-daily_all["cum_gross"] = daily_all["gross_pnl"].cumsum()
-daily_all["cum_net"]   = daily_all["net_pnl"].cumsum()
-
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 4.5), sharex=True)
-
-ax1.plot(daily_all["date"], daily_all["cum_gross"], label="Gross PnL", linewidth=2, alpha=0.7)
-ax1.plot(daily_all["date"], daily_all["cum_net"], label="Net PnL", linewidth=2)
-ax1.axhline(0, linestyle="--", alpha=0.5)
-ax1.set_ylabel("Cumulative PnL ($)")
-ax1.set_title("Z Guided Trend – Portfolio Performance", fontweight="bold")
-ax1.legend(loc="upper left")
-ax1.grid(True, alpha=0.3)
-
-colors = np.where(daily_all["net_pnl"] >= 0, "green", "red")
-ax2.bar(daily_all["date"], daily_all["net_pnl"], color=colors, alpha=0.6, width=0.8)
-ax2.axhline(0, linewidth=0.8)
-ax2.set_ylabel("Daily PnL ($)")
-ax2.set_xlabel("Date")
-ax2.grid(True, alpha=0.3, axis="y")
-ax2.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
-
-plt.tight_layout()
-plt.show()
-
+if img_path.exists():
+    display(Image(filename=str(img_path)))
+else:
+    print(f"Image not found: {img_path}")
 ```
 
 ---
@@ -550,15 +471,14 @@ ax3.set_title("Calmar Ratio by Quarter", fontsize=10, fontweight='bold')
 ax3.set_ylabel("Calmar Ratio", fontsize=9)
 ax3.grid(True, alpha=0.3, axis='y')
 
-# 4. STAT Score by Quarter
+# 4. Average Trades per Day
 ax4 = axes[1, 1]
-stats = orb_port["stat"].tolist()
-ax4.bar(range(len(quarters)), stats, color='purple', alpha=0.7)
+avg_trades = orb_port["av.ntrades"].tolist()
+ax4.bar(range(len(quarters)), avg_trades, color='purple', alpha=0.7)
 ax4.set_xticks(range(len(quarters)))
 ax4.set_xticklabels(quarters, rotation=45, ha='right', fontsize=8)
-ax4.axhline(0, color='black', linestyle='-', linewidth=0.8)
-ax4.set_title("STAT Score by Quarter", fontsize=10, fontweight='bold')
-ax4.set_ylabel("STAT Score", fontsize=9)
+ax4.set_title("Average Trades per Day by Quarter", fontsize=10, fontweight='bold')
+ax4.set_ylabel("Avg Trades/Day", fontsize=9)
 ax4.grid(True, alpha=0.3, axis='y')
 
 plt.tight_layout()
@@ -604,7 +524,7 @@ ax1.grid(True, alpha=0.3, axis="y")
 # 2. Sharpe Ratio by Quarter
 ax2 = axes[0, 1]
 sharpes = s2b_port["netSR"].tolist()
-ax2.bar(range(len(quarters)), sharpes, alpha=0.7)
+ax2.bar(range(len(quarters)), sharpes, color='steelblue', alpha=0.7)
 ax2.set_xticks(range(len(quarters)))
 ax2.set_xticklabels(quarters, rotation=45, ha="right", fontsize=8)
 ax2.axhline(0, color="black", linestyle="-", linewidth=0.8)
@@ -615,7 +535,7 @@ ax2.grid(True, alpha=0.3, axis="y")
 # 3. Calmar Ratio by Quarter
 ax3 = axes[1, 0]
 calmars = s2b_port["netCR"].tolist()
-ax3.bar(range(len(quarters)), calmars, alpha=0.7)
+ax3.bar(range(len(quarters)), calmars, color='darkorange', alpha=0.7)
 ax3.set_xticks(range(len(quarters)))
 ax3.set_xticklabels(quarters, rotation=45, ha="right", fontsize=8)
 ax3.axhline(0, color="black", linestyle="-", linewidth=0.8)
@@ -623,15 +543,14 @@ ax3.set_title("Calmar Ratio by Quarter", fontsize=10, fontweight="bold")
 ax3.set_ylabel("Calmar Ratio", fontsize=9)
 ax3.grid(True, alpha=0.3, axis="y")
 
-# 4. netSR 
+# 4. Average Trades per Day
 ax4 = axes[1, 1]
-netSRtype = s2b_port["netSR"].tolist()
-ax4.bar(range(len(quarters)), netSRtype, alpha=0.7)
+avg_trades = s2b_port["av.ntrades"].tolist()
+ax4.bar(range(len(quarters)), avg_trades, color='purple', alpha=0.7)
 ax4.set_xticks(range(len(quarters)))
 ax4.set_xticklabels(quarters, rotation=45, ha="right", fontsize=8)
-ax4.axhline(0, color="black", linestyle="-", linewidth=0.8)
-ax4.set_title("Sharpe (netSR) by Quarter", fontsize=10, fontweight="bold")
-ax4.set_ylabel("Annualized Sharpe", fontsize=9)
+ax4.set_title("Average Trades per Day by Quarter", fontsize=10, fontweight="bold")
+ax4.set_ylabel("Avg Trades/Day", fontsize=9)
 ax4.grid(True, alpha=0.3, axis="y")
 
 plt.tight_layout()
@@ -716,12 +635,16 @@ s2b_display
 - Volatility-adjusted thresholds
 - Excludes unreliable time windows
 
-**Overall STAT Score:**
+**Overall Portfolio Performance:**
 
 ```{python}
 #| echo: true
 overall_stat = orb_port["stat"].sum()
-print(f"Total STAT: {overall_stat:.4f}")
+overall_pnl = orb_port["net_cumPnL"].sum()
+overall_sharpe = orb_port["netSR"].mean()
+print(f"Total Net PnL: ${overall_pnl:,.2f}")
+print(f"Total STAT Score: {overall_stat:.4f}")
+print(f"Avg Net Sharpe: {overall_sharpe:.3f}")
 ```
 :::
 :::
@@ -755,7 +678,7 @@ print(f"Total STAT: {overall_stat:.4f}")
 - Stop-loss in z-space + extreme z exits
 - Transaction costs included in net P&L
 
-**Overall Net Performance (PORTFOLIO):**
+**Overall Portfolio Performance:**
 
 ```{python}
 #| echo: true
@@ -767,26 +690,152 @@ OUT_DIR  = BASE_DIR.parent / "Testing" / "outputs_strategy02"
 perf = pd.read_csv(OUT_DIR / "strategy02_perf.csv")
 
 port = perf[perf["asset"]=="PORTFOLIO"]
-print(f"Total Net PnL: ${port['net_cumPnL'].sum():,.0f}")
-print(f"Avg Net Sharpe (quarter avg): {port['netSR'].mean():.3f}")
-
+overall_pnl = port['net_cumPnL'].sum()
+overall_sharpe = port['netSR'].mean()
+# Calculate STAT for Strategy 2
+overall_stat = sum([(sr - 0.5) * np.log(abs(pnl/1000)) if pnl != 0 and np.isfinite(sr) else 0 
+                    for sr, pnl in zip(port['netSR'], port['net_cumPnL'])])
+print(f"Total Net PnL: ${overall_pnl:,.2f}")
+print(f"Total STAT Score: {overall_stat:.4f}")
+print(f"Avg Net Sharpe: {overall_sharpe:.3f}")
 ```
 :::
 :::
 
 ---
 
-
-## Conclusion & Next Steps
-
-**Strategy 1 (ORB) Performance:**
+## Strategy Comparison: ORB vs Z Guided Trend
 
 ```{python}
-print(f"Total Net PnL: ${total_net_pnl:,.2f}")
-print(f"Annualized Sharpe: {sharpe:.3f}")
-print(f"Max Drawdown: ${max_dd:,.2f}")
-print(f"Win Rate: {win_rate:.1f}%")
+#| fig-width: 10
+#| fig-height: 5
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+# Load both strategies' performance
+s1_perf = pd.read_csv(REPO_ROOT / "Testing" / "outputs_orb_final" / "orb_final_summary.csv")
+s2_perf = pd.read_csv(REPO_ROOT / "Testing" / "outputs_strategy02" / "strategy02_perf.csv")
+
+# Filter for PORTFOLIO only
+s1_port = s1_perf[s1_perf["asset"] == "PORTFOLIO"].copy().sort_values("quarter")
+s2_port = s2_perf[s2_perf["asset"] == "PORTFOLIO"].copy().sort_values("quarter")
+
+# Create comparison
+quarters_short = s2_port["quarter"].str.replace("data1_", "").tolist()
+x = np.arange(len(quarters_short))
+width = 0.35
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 5))
+
+# 1. Net PnL Comparison
+ax1 = axes[0, 0]
+bars1 = ax1.bar(x - width/2, s2_port["net_cumPnL"], width, label='Z Guided Trend', color='darkblue', alpha=0.7)
+bars2 = ax1.bar(x + width/2, s1_port["net_cumPnL"], width, label='ORB', color='darkred', alpha=0.7)
+ax1.set_xlabel('Quarter', fontweight='bold', fontsize=9)
+ax1.set_ylabel('Net PnL ($)', fontweight='bold', fontsize=9)
+ax1.set_title('Net PnL Comparison by Quarter', fontsize=10, fontweight='bold')
+ax1.set_xticks(x)
+ax1.set_xticklabels(quarters_short, rotation=45, ha='right', fontsize=7)
+ax1.legend(fontsize=8)
+ax1.grid(True, alpha=0.3, axis='y')
+ax1.axhline(0, color='black', linestyle='-', linewidth=0.8)
+
+# 2. Sharpe Ratio Comparison
+ax2 = axes[0, 1]
+ax2.bar(x - width/2, s2_port["netSR"], width, label='Z Guided Trend', color='steelblue', alpha=0.7)
+ax2.bar(x + width/2, s1_port["netSR"], width, label='ORB', color='coral', alpha=0.7)
+ax2.set_xlabel('Quarter', fontweight='bold', fontsize=9)
+ax2.set_ylabel('Sharpe Ratio', fontweight='bold', fontsize=9)
+ax2.set_title('Sharpe Ratio Comparison by Quarter', fontsize=10, fontweight='bold')
+ax2.set_xticks(x)
+ax2.set_xticklabels(quarters_short, rotation=45, ha='right', fontsize=7)
+ax2.legend(fontsize=8)
+ax2.grid(True, alpha=0.3, axis='y')
+ax2.axhline(0, color='black', linestyle='-', linewidth=0.8)
+
+# 3. Cumulative PnL Over Time
+ax3 = axes[1, 0]
+s2_cum = s2_port["net_cumPnL"].cumsum()
+s1_cum = s1_port["net_cumPnL"].cumsum()
+ax3.plot(quarters_short, s2_cum, marker='o', linewidth=2.5, label='Z Guided Trend', color='darkblue')
+ax3.plot(quarters_short, s1_cum, marker='s', linewidth=2.5, label='ORB', color='darkred')
+ax3.set_xlabel('Quarter', fontweight='bold', fontsize=9)
+ax3.set_ylabel('Cumulative Net PnL ($)', fontweight='bold', fontsize=9)
+ax3.set_title('Cumulative Net PnL Comparison', fontsize=10, fontweight='bold')
+ax3.set_xticks(range(len(quarters_short)))
+ax3.set_xticklabels(quarters_short, rotation=45, ha='right', fontsize=7)
+ax3.legend(fontsize=8)
+ax3.grid(True, alpha=0.3)
+ax3.axhline(0, color='black', linestyle='--', linewidth=0.8)
+
+# 4. Calmar Ratio Comparison
+ax4 = axes[1, 1]
+ax4.bar(x - width/2, s2_port["netCR"], width, label='Z Guided Trend', color='purple', alpha=0.7)
+ax4.bar(x + width/2, s1_port["netCR"], width, label='ORB', color='orange', alpha=0.7)
+ax4.set_xlabel('Quarter', fontweight='bold', fontsize=9)
+ax4.set_ylabel('Calmar Ratio', fontweight='bold', fontsize=9)
+ax4.set_title('Calmar Ratio Comparison by Quarter', fontsize=10, fontweight='bold')
+ax4.set_xticks(x)
+ax4.set_xticklabels(quarters_short, rotation=45, ha='right', fontsize=7)
+ax4.legend(fontsize=8)
+ax4.grid(True, alpha=0.3, axis='y')
+ax4.axhline(0, color='black', linestyle='-', linewidth=0.8)
+
+plt.suptitle('Portfolio Performance: Z Guided Trend vs ORB', fontsize=12, fontweight='bold', y=0.995)
+plt.tight_layout()
+plt.show()
 ```
+
+---
+
+## Final Comparison: Key Metrics
+
+```{python}
+import pandas as pd
+import numpy as np
+
+# Calculate STAT scores for both strategies
+s1_stat_total = s1_port['stat'].sum()
+s2_stat_total = sum([(sr - 0.5) * np.log(abs(pnl/1000)) if pnl != 0 and np.isfinite(sr) else 0 
+                     for sr, pnl in zip(s2_port['netSR'], s2_port['net_cumPnL'])])
+
+# Calculate summary statistics
+comparison_summary = pd.DataFrame({
+    'Metric': [
+        'Total Net PnL',
+        'Total STAT Score',
+        'Average Sharpe Ratio',
+        'Average Calmar Ratio',
+        'Quarters Profitable',
+        'Best Quarter PnL',
+        'Worst Quarter PnL'
+    ],
+    'Z Guided Trend': [
+        f"${s2_port['net_cumPnL'].sum():,.2f}",
+        f"{s2_stat_total:.4f}",
+        f"{s2_port['netSR'].mean():.3f}",
+        f"{s2_port['netCR'].mean():.3f}",
+        f"{(s2_port['net_cumPnL'] > 0).sum()}/{len(s2_port)}",
+        f"${s2_port['net_cumPnL'].max():,.2f}",
+        f"${s2_port['net_cumPnL'].min():,.2f}"
+    ],
+    'ORB': [
+        f"${s1_port['net_cumPnL'].sum():,.2f}",
+        f"{s1_stat_total:.4f}",
+        f"{s1_port['netSR'].mean():.3f}",
+        f"{s1_port['netCR'].mean():.3f}",
+        f"{(s1_port['net_cumPnL'] > 0).sum()}/{len(s1_port)}",
+        f"${s1_port['net_cumPnL'].max():,.2f}",
+        f"${s1_port['net_cumPnL'].min():,.2f}"
+    ]
+})
+
+comparison_summary
+```
+
 ---
 
 ## Thank You
