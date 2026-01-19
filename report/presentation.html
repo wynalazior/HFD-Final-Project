@@ -6,10 +6,10 @@
 <script src="presentation_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="presentation_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="presentation_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="presentation_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.8.27">
+<link href="presentation_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.25">
 
-  <meta name="author" content="Krzysztof Nalazek, ">
+  <meta name="author" content="Krzysztof Nalazek, Shah">
   <meta name="dcterms.date" content="2026-01-01">
   <title>HFD Final Project – Group 1</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -198,13 +198,13 @@
 
 <section id="title-slide" class="quarto-title-block center">
   <h1 class="title">HFD Final Project – Group 1</h1>
-  <p class="subtitle">Opening Range Breakout Strategy for SP &amp; NQ Futures</p>
+  <p class="subtitle">Opening Range Breakout Strategy and Z Trend Strategy for SP &amp; NQ Futures</p>
 
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
 <div class="quarto-title-author-name">
-Krzysztof Nalazek, <friend name=""> 
-</friend></div>
+Krzysztof Nalazek, Shah 
+</div>
 </div>
 </div>
 
@@ -223,7 +223,7 @@ Krzysztof Nalazek, <friend name="">
 <li><strong>Trading:</strong> Separate signals, portfolio aggregation</li>
 </ul>
 </div><div class="column" style="width:50%;">
-<p><strong>Trading Constraints:</strong></p>
+<p><strong>Trading Constraints (both):</strong></p>
 <ul>
 <li><strong>Excluded windows:</strong> 9:31–9:40, 15:51–16:00</li>
 <li><strong>No trading:</strong> 9:31–9:55 (volatility buffer)</li>
@@ -245,16 +245,16 @@ Krzysztof Nalazek, <friend name="">
 <li>Low turnover design</li>
 </ul>
 </div><div class="column" style="width:50%;">
-<h3 id="strategy-2-volatility-bands">Strategy 2: Volatility Bands</h3>
+<h3 id="strategy-2-z-guided-trend">Strategy 2: Z Guided Trend</h3>
 <p><strong>Key Features:</strong></p>
 <ul>
-<li>Regime-switching logic</li>
-<li>Mean-reversion vs momentum</li>
-<li>Rolling volatility bands</li>
-<li>Dynamic thresholds</li>
+<li>Trend-following entries (SMA vs SMA_slow level + slope gate)</li>
+<li>z-score entry with z-momentum confirmation (z accelerating into entry)</li>
+<li>Hard constraints: no-trade window, no new entries after 14:30, forced flat from 15:40</li>
+<li>Risk controls: z stop-loss + extreme z stop, cooldown after exits (reduces churn)</li>
 </ul>
-</div></div>
-<p><br></p>
+</div><p><br></p>
+</div>
 </section>
 <section id="strategy-1-opening-range-breakout-orb" class="slide level2">
 <h2>Strategy 1: Opening Range Breakout (ORB)</h2>
@@ -283,6 +283,34 @@ Krzysztof Nalazek, <friend name="">
 </ul></li>
 </ol>
 </section>
+<section id="strategy-02-z-guided-trend" class="slide level2">
+<h2>Strategy 02 : Z Guided Trend</h2>
+<p><strong>Core Algorithm:</strong></p>
+<ol type="1">
+<li><strong>Trend Definition</strong>
+<ul>
+<li>Fast SMA for level</li>
+<li>Slow SMA for intraday trend</li>
+<li>Trend confirmed by slow SMA slope</li>
+</ul></li>
+<li><strong>Entry and Exit Logic</strong>
+<ul>
+<li><strong>Long:</strong> Trend up + price rising + z-score increasing</li>
+<li><strong>Short:</strong> Trend down + price falling + z-score decreasing</li>
+<li>Stop-loss when z moves against position</li>
+<li>Exit if trend reverses</li>
+<li>Exit at extreme z-score levels</li>
+<li>Forced flat at 15:40 (no overnight)</li>
+</ul></li>
+<li><strong>Risk Controls</strong>
+<ul>
+<li>No trading during 09:31–09:55</li>
+<li>No new entries after 14:30</li>
+<li>Cooldown period after exits</li>
+<li>Transaction costs included in P&amp;L</li>
+</ul></li>
+</ol>
+</section>
 <section id="orb-parameter-optimization" class="slide level2">
 <h2>ORB: Parameter Optimization</h2>
 <div class="columns">
@@ -301,7 +329,7 @@ Krzysztof Nalazek, <friend name="">
 <li><strong>Selection</strong>: Based on VALIDATION performance</li>
 </ul>
 <p><strong>Optimal Parameters:</strong></p>
-<div id="6d62edf2" class="cell" data-execution_count="2">
+<div id="7a5130e2" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="co"># Best parameters (selected on validation)</span></span>
 <span id="cb1-2"><a href=""></a><span class="bu">print</span>(<span class="st">"SP: ATR_window=15, ATR_mult=0.0"</span>)</span>
 <span id="cb1-3"><a href=""></a><span class="bu">print</span>(<span class="st">"NQ: ATR_window=30, ATR_mult=0.2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -327,13 +355,64 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </ol>
 </div></div>
 </section>
+<section id="z-guided-trend-parameter-optimization" class="slide level2">
+<h2>Z Guided Trend: Parameter Optimization</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>Train-Test Split:</strong></p>
+<ul>
+<li><strong>Training</strong> (4 qtrs): 2023_Q1, Q3, 2024_Q2, Q4</li>
+<li><strong>Test</strong> (1 qtr): 2025_Q2</li>
+</ul>
+<p><strong>Grid Search:</strong></p>
+<ul>
+<li><strong>SMA Window</strong>: [240, 360, 480] minutes<br>
+</li>
+<li><strong>Slow Multiplier</strong>: [3, 4]<br>
+</li>
+<li><strong>Slope Lookback (m)</strong>: [5, 10]<br>
+</li>
+<li><strong>Z Entry Threshold</strong>: [1.4, 1.6, 1.8, 2.0]<br>
+</li>
+<li><strong>Z Stop Threshold</strong>: [3.5, 4.0, 4.5]<br>
+</li>
+<li><strong>Z Stop-Loss (SL) Threshold</strong>: [1.0, 1.5, 2.0]<br>
+</li>
+<li><strong>Z Momentum Threshold</strong>: [0.05, 0.10, 0.20, 0.30]<br>
+</li>
+<li><strong>Cooldown</strong>: [5, 10]<br>
+</li>
+<li><strong>Selection</strong>: Based on VALIDATION performance</li>
+</ul>
+<p><strong>Optimal Parameters:</strong></p>
+<div id="c85bdadb" class="cell" data-execution_count="3">
+<div class="cell-output cell-output-stdout">
+<pre><code>NQ: SMA_win=360, slow_mult=3, slope_m=10, z_entry=1.6, z_stop=3.5, z_sl=2.0, z_mom=0.1, cooldown=5
+SP: SMA_win=360, slow_mult=3, slope_m=5, z_entry=1.4, z_stop=3.5, z_sl=2.0, z_mom=0.05, cooldown=5</code></pre>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<p><strong>Optimization Objective:</strong></p>
+<ul>
+<li>We select parameters that maximize Net P&amp;L (transaction costs included).</li>
+<li>This penalizes over-trading automatically via per-trade costs.</li>
+<li>Balances risk-adjusted and absolute returns</li>
+</ul>
+<p><strong>Methodology:</strong></p>
+<ol type="1">
+<li>Evaluate all combinations on TRAIN.</li>
+<li>Use same quarter combination on next year. (Seasonality)</li>
+<li>Final evaluation on TEST</li>
+</ol>
+</div></div>
+</section>
 <section id="orb-trainvalidationtest-performance" class="slide level2">
 <h2>ORB: Train/Validation/Test Performance</h2>
-<div id="69893e6a" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="3">
+<div id="3dd09131" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="presentation_files/figure-revealjs/cell-4-output-1.png" width="854" height="253"></p>
+<p><img data-src="presentation_files/figure-revealjs/cell-5-output-1.png" width="854" height="253"></p>
 </figure>
 </div>
 </div>
@@ -346,10 +425,28 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 <li>Large gap suggests strategy may not generalize well</li>
 </ul>
 </section>
+<section id="z-guided-trend-trainvalidationtest-performance" class="slide level2">
+<h2>Z Guided Trend: Train/Validation/Test Performance</h2>
+<div id="9fe0cd73" class="cell" data-fig-height="4" data-fig-width="9" data-execution_count="5">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="presentation_files/figure-revealjs/cell-6-output-1.png" width="1142" height="355"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Key Observations:</strong></p>
+<ul>
+<li>Parameters selected based on TRAINING performance.</li>
+<li>TEST quarter (2025_Q2) is completely unseen during optimization.</li>
+<li>Performance degradation in PnL form, with modest risk adjusted resturns.</li>
+</ul>
+</section>
 <section id="orb-key-performance-metrics" class="slide level2">
 <h2>ORB: Key Performance Metrics</h2>
-<div id="1aeed4ee" class="cell" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="4">
+<div id="60967be3" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="38">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -411,13 +508,90 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </div>
 </div>
 </section>
+<section id="z-trend-key-performance-metrics" class="slide level2">
+<h2>Z Trend: Key Performance Metrics</h2>
+<div id="40bba45b" class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="39">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+
+<table class="dataframe caption-top" data-border="1">
+<thead>
+<tr class="header" style="text-align: right;">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Metric</th>
+<th data-quarto-table-cell-role="th">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Total Net PnL</td>
+<td>$193,456.15</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Annualized Sharpe</td>
+<td>2.694</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Annualized Calmar</td>
+<td>5.348</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Max Drawdown</td>
+<td>$-20,166.26</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>Win Rate</td>
+<td>34.7%</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>Total Days</td>
+<td>452</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
 <section id="orb-cumulative-pnl-portfolio" class="slide level2">
 <h2>ORB: Cumulative PnL (Portfolio)</h2>
-<div id="9d680d34" class="cell" data-fig-height="4.5" data-fig-width="9" data-execution_count="5">
+<div id="3d7c9779" class="cell" data-fig-height="4.5" data-fig-width="9" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="presentation_files/figure-revealjs/cell-6-output-1.png" width="854" height="422"></p>
+<p><img data-src="presentation_files/figure-revealjs/cell-9-output-1.png" width="854" height="422"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="z-guided-trend-cumulative-pnl-portfolio" class="slide level2">
+<h2>Z Guided Trend : Cumulative PnL (Portfolio)</h2>
+<div id="1c803bc3" class="cell" data-fig-height="4.5" data-fig-width="9" data-execution_count="9">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="presentation_files/figure-revealjs/cell-10-output-1.png" width="854" height="422"></p>
 </figure>
 </div>
 </div>
@@ -425,11 +599,23 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </section>
 <section id="orb-quarterly-performance-breakdown" class="slide level2">
 <h2>ORB: Quarterly Performance Breakdown</h2>
-<div id="68639169" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="6">
+<div id="a430153a" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="presentation_files/figure-revealjs/cell-7-output-1.png" width="853" height="470"></p>
+<p><img data-src="presentation_files/figure-revealjs/cell-11-output-1.png" width="853" height="470"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="z-guided-trend-quarterly-performance-breakdown" class="slide level2">
+<h2>Z Guided Trend : Quarterly Performance Breakdown</h2>
+<div id="ccfe8df5" class="cell" data-fig-height="5" data-fig-width="9" data-execution_count="11">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="presentation_files/figure-revealjs/cell-12-output-1.png" width="853" height="470"></p>
 </figure>
 </div>
 </div>
@@ -437,8 +623,8 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </section>
 <section id="orb-per-asset-results" class="slide level2">
 <h2>ORB: Per-Asset Results</h2>
-<div id="e214dd10" class="cell" data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div id="4e21c3cf" class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="44">
 <div>
 <style scoped="">
     .dataframe tbody tr th:only-of-type {
@@ -645,6 +831,171 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 </div>
 </div>
 </section>
+<section id="z-guided-trend-per-asset-results" class="slide level2">
+<h2>Z Guided Trend: Per-Asset Results</h2>
+<div id="35986ae4" class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="45">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+
+<table class="dataframe caption-top" data-border="1">
+<thead>
+<tr class="header" style="text-align: right;">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">quarter</th>
+<th data-quarto-table-cell-role="th">asset</th>
+<th data-quarto-table-cell-role="th">netSR</th>
+<th data-quarto-table-cell-role="th">netCR</th>
+<th data-quarto-table-cell-role="th">net_cumPnL</th>
+<th data-quarto-table-cell-role="th">av.ntrades</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>data1_2023_Q1</td>
+<td>NQ</td>
+<td>2.555</td>
+<td>8.425</td>
+<td>$18,383</td>
+<td>1.2</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2</th>
+<td>data1_2023_Q1</td>
+<td>SP</td>
+<td>0.300</td>
+<td>0.533</td>
+<td>$1,182</td>
+<td>1.5</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">3</th>
+<td>data1_2023_Q3</td>
+<td>NQ</td>
+<td>2.612</td>
+<td>14.258</td>
+<td>$10,071</td>
+<td>0.5</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>data1_2023_Q3</td>
+<td>SP</td>
+<td>2.290</td>
+<td>8.470</td>
+<td>$5,146</td>
+<td>0.8</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>data1_2023_Q4</td>
+<td>NQ</td>
+<td>5.428</td>
+<td>29.599</td>
+<td>$28,337</td>
+<td>1.2</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">8</th>
+<td>data1_2023_Q4</td>
+<td>SP</td>
+<td>4.184</td>
+<td>22.742</td>
+<td>$13,969</td>
+<td>1.4</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">9</th>
+<td>data1_2024_Q2</td>
+<td>NQ</td>
+<td>4.443</td>
+<td>35.315</td>
+<td>$33,558</td>
+<td>1.4</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">11</th>
+<td>data1_2024_Q2</td>
+<td>SP</td>
+<td>1.689</td>
+<td>3.983</td>
+<td>$4,788</td>
+<td>0.9</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">12</th>
+<td>data1_2024_Q4</td>
+<td>NQ</td>
+<td>1.633</td>
+<td>8.182</td>
+<td>$17,438</td>
+<td>1.7</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">14</th>
+<td>data1_2024_Q4</td>
+<td>SP</td>
+<td>3.011</td>
+<td>8.854</td>
+<td>$15,213</td>
+<td>1.2</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">15</th>
+<td>data1_2025_Q1</td>
+<td>NQ</td>
+<td>-0.070</td>
+<td>-0.143</td>
+<td>$-456</td>
+<td>0.5</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">17</th>
+<td>data1_2025_Q1</td>
+<td>SP</td>
+<td>1.896</td>
+<td>4.954</td>
+<td>$4,024</td>
+<td>0.4</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">18</th>
+<td>data1_2025_Q2</td>
+<td>NQ</td>
+<td>2.748</td>
+<td>5.974</td>
+<td>$23,531</td>
+<td>1.3</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">20</th>
+<td>data1_2025_Q2</td>
+<td>SP</td>
+<td>3.234</td>
+<td>10.778</td>
+<td>$18,271</td>
+<td>1.2</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
 <section id="orb-strategy-summary" class="slide level2">
 <h2>ORB: Strategy Summary</h2>
 <div class="columns">
@@ -671,11 +1022,56 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 <li>Excludes unreliable time windows</li>
 </ul>
 <p><strong>Overall STAT Score:</strong></p>
-<div id="423361fd" class="cell" data-execution_count="8">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a>overall_stat <span class="op">=</span> orb_port[<span class="st">"stat"</span>].<span class="bu">sum</span>()</span>
-<span id="cb3-2"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total STAT: </span><span class="sc">{</span>overall_stat<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="de754c7e" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a>overall_stat <span class="op">=</span> orb_port[<span class="st">"stat"</span>].<span class="bu">sum</span>()</span>
+<span id="cb4-2"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total STAT: </span><span class="sc">{</span>overall_stat<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Total STAT: 16.6499</code></pre>
+</div>
+</div>
+</div></div>
+</section>
+<section id="z-guided-trend-strategy-summary" class="slide level2">
+<h2>Z Guided Trend: Strategy Summary</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Trend-aligned entries via fast/slow SMA filter</li>
+<li>Uses z-momentum confirmation to reduce early/late fades</li>
+<li>Intraday-only design (no overnight exposure)</li>
+<li>Works on both SP and NQ with the same logic</li>
+</ul>
+<p><strong>Key Observations:</strong></p>
+<ul>
+<li>Best performance tends to occur in sustained intraday trends</li>
+<li>Z-momentum filter helps avoid entries on flattening/extreme z moves</li>
+<li>Cooldown reduces rapid flip-flopping after exits</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<p><strong>Risk Management:</strong></p>
+<ul>
+<li>No trading during 09:31–09:55 (volatility buffer)</li>
+<li>No new entries after 14:30</li>
+<li>Forced flat from 15:40 onwards</li>
+<li>Stop-loss in z-space + extreme z exits</li>
+<li>Transaction costs included in net P&amp;L</li>
+</ul>
+<p><strong>Overall Net Performance (PORTFOLIO):</strong></p>
+<div id="fa5f8d4e" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb6-2"><a href=""></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb6-3"><a href=""></a></span>
+<span id="cb6-4"><a href=""></a>BASE_DIR <span class="op">=</span> Path.cwd()</span>
+<span id="cb6-5"><a href=""></a>OUT_DIR  <span class="op">=</span> BASE_DIR.parent <span class="op">/</span> <span class="st">"Testing"</span> <span class="op">/</span> <span class="st">"outputs_strategy02"</span></span>
+<span id="cb6-6"><a href=""></a>perf <span class="op">=</span> pd.read_csv(OUT_DIR <span class="op">/</span> <span class="st">"strategy02_perf.csv"</span>)</span>
+<span id="cb6-7"><a href=""></a></span>
+<span id="cb6-8"><a href=""></a>port <span class="op">=</span> perf[perf[<span class="st">"asset"</span>]<span class="op">==</span><span class="st">"PORTFOLIO"</span>]</span>
+<span id="cb6-9"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total Net PnL: $</span><span class="sc">{</span>port[<span class="st">'net_cumPnL'</span>]<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,.0f}</span><span class="ss">"</span>)</span>
+<span id="cb6-10"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Avg Net Sharpe (quarter avg): </span><span class="sc">{</span>port[<span class="st">'netSR'</span>]<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total Net PnL: $193,456
+Avg Net Sharpe (quarter avg): 2.833</code></pre>
 </div>
 </div>
 </div></div>
@@ -683,12 +1079,12 @@ NQ: ATR_window=30, ATR_mult=0.2</code></pre>
 <section id="conclusion-next-steps" class="slide level2">
 <h2>Conclusion &amp; Next Steps</h2>
 <p><strong>Strategy 1 (ORB) Performance:</strong></p>
-<div id="15807b18" class="cell" data-execution_count="9">
+<div id="82ca99f1" class="cell" data-execution_count="16">
 <div class="cell-output cell-output-stdout">
-<pre><code>Total Net PnL: $70,954.54
-Annualized Sharpe: 1.321
-Max Drawdown: $-17,457.21
-Win Rate: 18.6%</code></pre>
+<pre><code>Total Net PnL: $193,456.15
+Annualized Sharpe: 2.694
+Max Drawdown: $-20,166.26
+Win Rate: 34.7%</code></pre>
 </div>
 </div>
 </section>
