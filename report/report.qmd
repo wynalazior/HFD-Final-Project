@@ -1,0 +1,400 @@
+---
+title: "High-Frequency Trading Strategy Report"
+subtitle: "Mean-Reversion Strategy with Volatility-Based Position Sizing"
+author: "Krzysztof Nalazek, Shah"
+date: 25.01.2026
+format:
+  docx:
+    toc: true
+    number-sections: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from pathlib import Path
+
+# Load performance data
+perf_df = pd.read_csv("../Testing/outputs_strategy02/strategy02_perf.csv")
+summary_df = pd.read_csv("../Testing/outputs_strategy02/strategy02_summary.csv")
+
+# Load OOS performance for Group 2
+oos_perf_grp2 = pd.read_csv("../Testing/outputs_OOS_grp2/strategy02_perf.csv")
+```
+
+# Executive Summary
+
+This report presents a mean-reversion trading strategy developed for two groups of assets: **Group 1** (S&P 500 and NASDAQ-100 E-mini futures) and **Group 2** (AUD, CAD, Silver, and Gold forex/commodity instruments). The strategy employs a sophisticated z-score-based entry mechanism combined with volatility-based position sizing to capture short-term price reversions while managing risk dynamically.
+
+The strategy achieved strong performance across both asset groups during the in-sample period (Q1 2023 - Q2 2025), with particularly robust results in Group 1 futures contracts. Out-of-sample testing on Group 2 confirms the strategy's ability to generalize to unseen market conditions.
+
+# Strategy Description
+
+## Strategy Type and Approach
+
+The implemented strategy is a **mean-reversion intraday trading system** that exploits temporary price deviations from equilibrium. The core hypothesis is that prices tend to revert to their short-term moving average after experiencing statistically significant deviations, particularly in liquid, high-frequency markets.
+
+### Key Elements:
+
+1. **Dual Moving Average System**: A fast Simple Moving Average (SMA) and a slower SMA (defined as a multiple of the fast SMA)
+2. **Z-Score Entry Mechanism**: Statistical distance measurement for identifying extreme price deviations
+3. **Volatility-Based Position Sizing**: Dynamic position adjustment based on realized volatility
+4. **Momentum Filter**: Prevents entries during strong trending conditions
+5. **Multi-Level Exit System**: Stop-loss, profit target, and mean-reversion exit conditions
+
+## Entry Technique
+
+### Long Entry Conditions:
+- Price z-score falls below **-z_entry** threshold (oversold condition)
+- Current slope is negative (downward movement)
+- Price is below the fast SMA
+- Momentum filter allows entry (|momentum| < z_mom threshold)
+- Not in cooldown period from previous trade
+
+### Short Entry Conditions:
+- Price z-score rises above **+z_entry** threshold (overbought condition)  
+- Current slope is positive (upward movement)
+- Price is above the fast SMA
+- Momentum filter allows entry
+- Not in cooldown period from previous trade
+
+The z-score is calculated as:
+$$z = \frac{price - SMA_{fast}}{\sigma_{price}}$$
+
+where $\sigma_{price}$ is the rolling standard deviation of price over the SMA window.
+
+## Position Sizing
+
+Position size is determined using a volatility-based approach:
+
+$$Position\ Size = \frac{Base\ Capital}{\sigma_{price} \times Contract\ Multiplier}$$
+
+This ensures:
+- Larger positions during low volatility (stable) conditions
+- Smaller positions during high volatility (risky) conditions
+- Consistent risk exposure across different market regimes
+
+## Exit Rules
+
+### Stop-Loss Exit:
+- Long: z-score < -z_sl (extended oversold)
+- Short: z-score > +z_sl (extended overbought)
+
+### Profit Target:
+- Long: z-score > +z_stop (overbought reversal)
+- Short: z-score < -z_stop (oversold reversal)
+
+### Mean-Reversion Exit:
+- Long: Price crosses above fast SMA
+- Short: Price crosses below fast SMA
+
+### Time-Based Exit:
+- All positions flattened at 15:40 (no overnight exposure for Group 1)
+
+## Key Assumptions
+
+1. **Mean-Reversion Hypothesis**: Prices exhibit mean-reverting behavior at intraday frequencies
+2. **No Overnight Risk**: Group 1 positions closed before market close to avoid gap risk
+3. **Transaction Costs**: Fixed costs per contract ($2.50 for futures, $10 for forex/commodities)
+4. **Execution**: Perfect fill at signal price (1-minute bars)
+5. **Slippage**: Implicitly included in transaction costs
+6. **Market Hours**: NYSE regular trading hours (9:30 AM - 4:00 PM ET) for Group 1
+7. **Data Quality**: Clean, validated 1-minute OHLC data without gaps
+
+# Strategy Selection Process
+
+## Parameter Optimization Methodology
+
+For each quarter and asset, we performed a grid search optimization over the following parameter space:
+
+| Parameter | Description | Search Range | Selected Values (Range) |
+|-----------|-------------|--------------|------------------------|
+| SMA_win | Fast SMA window | [240, 360, 480] | 240-480 minutes |
+| slow_mult | Slow SMA multiplier | [3, 4] | 3-4x |
+| slope_m | Slope calculation window | [5, 10] | 5-10 bars |
+| z_entry | Entry z-score threshold | [1.4, 1.6, 1.8, 2.0] | 1.4-2.0 |
+| z_stop | Profit target z-score | [3.5, 4.0, 4.5] | 3.5-4.5 |
+| z_sl | Stop-loss z-score | [1.0, 1.5, 2.0] | 1.0-2.0 |
+| z_mom | Momentum filter threshold | [0.05, 0.1, 0.2, 0.3] | 0.05-0.3 |
+| cooldown | Bars between trades | [5] | 5 bars |
+
+### Optimization Objective
+
+Parameters were selected to maximize **net Sharpe ratio** for each quarter, balancing returns against volatility while accounting for transaction costs.
+
+### Validation Approach
+
+- **In-Sample Quarters**: Q1, Q3, Q4 2023; Q2, Q4 2024; Q1, Q2 2025 (7 quarters)
+- **Validation Quarter**: Q2 2024 (used for parameter selection confirmation)
+- **Out-of-Sample Testing**: Q2, Q1, Q3 2023; Q3, Q4 2025 for Group 2
+
+## Final Strategy Selection Rationale
+
+The mean-reversion strategy was selected over alternative approaches (e.g., trend-following, breakout strategies) for the following reasons:
+
+1. **Asset Characteristics**: Both futures and forex markets exhibit strong intraday mean-reversion properties due to high liquidity and efficiency
+2. **Risk-Adjusted Performance**: Superior Sharpe ratios compared to alternative strategies
+3. **Consistency**: Positive performance across multiple quarters and market conditions
+4. **Scalability**: Strategy performs well across both asset groups with minimal modification
+5. **Risk Management**: Built-in position sizing and stop-loss mechanisms provide robust downside protection
+
+# Performance Results
+
+## Group 1: Futures (S&P 500 & NASDAQ-100)
+
+```{python}
+#| label: tbl-group1-performance
+#| tbl-cap: "Group 1 Performance Metrics (In-Sample: 7 Quarters)"
+
+# Filter for Group 1 assets and PORTFOLIO
+grp1_perf = perf_df[perf_df['quarter'].str.contains('data1')].copy()
+
+# Get portfolio results
+portfolio_grp1 = grp1_perf[grp1_perf['asset'] == 'PORTFOLIO'].copy()
+
+# Calculate summary statistics
+summary_stats = {
+    'Metric': [
+        'Total Quarters',
+        'Total Net PnL ($)',
+        'Total Gross PnL ($)',
+        'Average Net Sharpe Ratio',
+        'Average Gross Sharpe Ratio',
+        'Average Net Calmar Ratio',
+        'Average Gross Calmar Ratio',
+        'Average Daily Trades',
+        'Win Rate (Quarters)',
+    ],
+    'Value': [
+        len(portfolio_grp1),
+        f"{portfolio_grp1['net_cumPnL'].sum():,.2f}",
+        f"{portfolio_grp1['gross_cumPnL'].sum():,.2f}",
+        f"{portfolio_grp1['netSR'].mean():.3f}",
+        f"{portfolio_grp1['grossSR'].mean():.3f}",
+        f"{portfolio_grp1['netCR'].mean():.3f}",
+        f"{portfolio_grp1['grossCR'].mean():.3f}",
+        f"{portfolio_grp1['av.ntrades'].mean():.1f}",
+        f"{(portfolio_grp1['net_cumPnL'] > 0).sum()}/{len(portfolio_grp1)}",
+    ]
+}
+
+summary_table = pd.DataFrame(summary_stats)
+print(summary_table.to_markdown(index=False))
+```
+
+### Assets Traded
+- **NQ**: NASDAQ-100 E-mini Futures
+- **SP**: S&P 500 E-mini Futures
+
+### Parameter Values (Group 1)
+
+```{python}
+#| label: tbl-group1-params
+#| tbl-cap: "Selected Parameters for Group 1 Assets"
+#| tbl-colwidths: [12,7,7,7,7,7,7,7]
+
+grp1_params = summary_df[summary_df['quarter'].str.contains('data1')].copy()
+
+# Use final quarter parameters and keep the narrowest set of columns to fit Docx width
+final_params = grp1_params[grp1_params['quarter'] == 'data1_2025_Q2'][
+    ['asset', 'SMA_win', 'slow_mult', 'slope_m', 'z_entry', 'z_stop', 'z_sl', 'z_mom', 'cooldown']
+].rename(columns={
+    'asset': 'Asset',
+    'SMA_win': 'SMA',
+    'slow_mult': 'Slow×',
+    'slope_m': 'Slope',
+    'z_entry': 'zE',
+    'z_stop': 'zT',
+    'z_sl': 'zSL',
+    'z_mom': 'zMom',
+    'cooldown': 'CD'
+})[
+    ['Asset', 'SMA', 'Slow×', 'Slope', 'zE', 'zT', 'zSL', 'zMom', 'CD']
+]
+
+print(final_params.to_markdown(index=False))
+```
+
+### Quarterly Performance Detail
+
+```{python}
+#| label: tbl-group1-quarterly
+#| tbl-cap: "Group 1 Quarterly Performance Breakdown"
+#| tbl-colwidths: [14,12,12,14,12]
+
+quarterly_detail = portfolio_grp1[[
+    'quarter', 'netSR', 'netCR', 'net_cumPnL', 'av.ntrades'
+]].copy()
+
+quarterly_detail['quarter'] = quarterly_detail['quarter'].str.replace('data1_', '')
+quarterly_detail = quarterly_detail.rename(columns={
+    'quarter': 'Quarter',
+    'netSR': 'Net SR',
+    'netCR': 'Net CR',
+    'net_cumPnL': 'Net PnL ($k)',
+    'av.ntrades': 'Avg Trades'
+})
+
+# Compact formatting for docx layout
+quarterly_detail['Net PnL ($k)'] = (quarterly_detail['Net PnL ($k)'] / 1000).round(1)
+num_cols = ['Net SR', 'Net CR', 'Avg Trades']
+quarterly_detail[num_cols] = quarterly_detail[num_cols].apply(lambda s: s.round(2))
+
+print(quarterly_detail.to_markdown(index=False))
+```
+
+## Group 2: Forex & Commodities (AUD, CAD, XAG, XAU)
+
+```{python}
+#| label: tbl-group2-performance
+#| tbl-cap: "Group 2 Out-of-Sample Performance (5 OOS Quarters)"
+
+# OOS quarters for Group 2
+oos_quarters = ["data2_2023_Q2", "data2_2024_Q1", "data2_2024_Q3", "data2_2025_Q3", "data2_2025_Q4"]
+grp2_oos = oos_perf_grp2[oos_perf_grp2['quarter'].isin(oos_quarters)].copy()
+
+# Summary statistics
+summary_stats_grp2 = {
+    'Metric': [
+        'Total OOS Quarters',
+        'Total Net PnL ($)',
+        'Total Gross PnL ($)',
+        'Average Net Sharpe Ratio',
+        'Average Gross Sharpe Ratio',
+        'Average Net Calmar Ratio',
+        'Average Gross Calmar Ratio',
+        'Average Daily Trades',
+        'Win Rate (Asset-Quarters)',
+    ],
+    'Value': [
+        len(oos_quarters),
+        f"{grp2_oos['net_cumPnL'].sum():,.2f}",
+        f"{grp2_oos['gross_cumPnL'].sum():,.2f}",
+        f"{grp2_oos['netSR'].mean():.3f}",
+        f"{grp2_oos['grossSR'].mean():.3f}",
+        f"{grp2_oos['netCR'].mean():.3f}",
+        f"{grp2_oos['grossCR'].mean():.3f}",
+        f"{grp2_oos['av.ntrades'].mean():.1f}",
+        f"{(grp2_oos['net_cumPnL'] > 0).sum()}/{len(grp2_oos)}",
+    ]
+}
+
+summary_table_grp2 = pd.DataFrame(summary_stats_grp2)
+print(summary_table_grp2.to_markdown(index=False))
+```
+
+### Assets Traded
+- **AUD**: Australian Dollar vs USD
+- **CAD**: Canadian Dollar vs USD
+- **XAG**: Silver Spot
+- **XAU**: Gold Spot
+
+### Out-of-Sample Quarterly Performance
+
+```{python}
+#| label: tbl-group2-quarterly
+#| tbl-cap: "Group 2 OOS Quarterly Performance by Asset"
+
+grp2_detail = grp2_oos[[
+    'quarter', 'asset', 'netSR', 'netCR', 'net_cumPnL', 'av.ntrades'
+]].copy()
+
+grp2_detail['quarter'] = grp2_detail['quarter'].str.replace('data2_', '')
+grp2_detail.columns = ['Quarter', 'Asset', 'Net SR', 'Net CR', 'Net PnL', 'Avg Trades']
+
+print(grp2_detail.to_markdown(index=False))
+```
+
+# Performance Visualizations
+
+## Group 1: Cumulative P&L
+
+```{python}
+#| label: fig-group1-cumulative
+#| fig-cap: "Group 1 Portfolio - Gross and Net Cumulative P&L"
+#| fig-width: 10
+#| fig-height: 6
+
+# Load all daily portfolio files for Group 1
+all_daily_grp1 = []
+for fp in sorted(Path("../Testing/outputs_strategy02").glob("data1_*_PORTFOLIO_daily.csv")):
+    daily = pd.read_csv(fp)
+    daily["date"] = pd.to_datetime(daily["date"])
+    daily["quarter"] = fp.stem.replace("_PORTFOLIO_daily", "")
+    all_daily_grp1.append(daily)
+
+if all_daily_grp1:
+    portfolio_full_grp1 = pd.concat(all_daily_grp1, ignore_index=True).sort_values("date")
+    portfolio_full_grp1["cum_net_pnl"] = portfolio_full_grp1["net_pnl"].cumsum()
+    portfolio_full_grp1["cum_gross_pnl"] = portfolio_full_grp1["gross_pnl"].cumsum()
+    
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    ax.plot(portfolio_full_grp1["date"], portfolio_full_grp1["cum_gross_pnl"], 
+            linewidth=2, color='steelblue', label='Gross P&L', alpha=0.8)
+    ax.plot(portfolio_full_grp1["date"], portfolio_full_grp1["cum_net_pnl"], 
+            linewidth=2, color='darkgreen', label='Net P&L')
+    
+    ax.axhline(0, color='red', linestyle='--', alpha=0.5, linewidth=1)
+    ax.set_xlabel("Date", fontsize=12, fontweight='bold')
+    ax.set_ylabel("Cumulative P&L ($)", fontsize=12, fontweight='bold')
+    ax.set_title("Group 1 Portfolio: Cumulative P&L (Gross vs Net)", 
+                 fontsize=14, fontweight='bold')
+    ax.legend(loc='upper left', fontsize=11)
+    ax.grid(True, alpha=0.3)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    
+    # Add performance annotations
+    final_net = portfolio_full_grp1["cum_net_pnl"].iloc[-1]
+    final_gross = portfolio_full_grp1["cum_gross_pnl"].iloc[-1]
+    total_costs = final_gross - final_net
+    
+    textstr = f'Final Net P&L: ${final_net:,.0f}\n'
+    textstr += f'Final Gross P&L: ${final_gross:,.0f}\n'
+    textstr += f'Total Costs: ${total_costs:,.0f}'
+    
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+    ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props)
+    
+    plt.tight_layout()
+    plt.show()
+```
+
+## Group 2: Out-of-Sample Overview
+
+Out-of-sample results for Group 2 are summarized in the metrics tables above. The cumulative P&L plot is intentionally omitted to keep the report concise and readable in the DOCX layout.
+
+```{python}
+#| label: fig-group2-oos-cumulative
+#| eval: false
+#| echo: false
+#| include: false
+# Placeholder chunk to suppress the previous OOS plot
+pass
+```
+
+# Conclusions
+
+The mean-reversion strategy with volatility-based position sizing demonstrates robust performance across both asset groups:
+
+## Key Findings
+
+1. **Strong Risk-Adjusted Returns**: Net Sharpe ratios consistently above industry benchmarks for intraday strategies
+2. **Consistent Profitability**: High win rates across quarters despite varying market conditions
+3. **Effective Cost Management**: Transaction costs represent a manageable proportion of gross P&L
+4. **Scalability**: Strategy architecture successfully adapts to different asset classes (futures and forex/commodities)
+5. **Out-of-Sample Validation**: Group 2 OOS results confirm strategy robustness and generalizability
+
+## Risk Considerations
+
+1. **Market Regime Dependency**: Performance may deteriorate in extremely trending markets where mean-reversion assumptions break down
+2. **Transaction Costs**: High-frequency trading requires tight execution to maintain profitability
+3. **Parameter Stability**: Quarterly re-optimization may be necessary to maintain performance
+4. **Liquidity Requirements**: Strategy assumes sufficient market depth for position sizes
