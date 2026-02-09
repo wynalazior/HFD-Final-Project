@@ -648,5 +648,5 @@ The mean-reversion strategy with volatility-based position sizing demonstrates r
 
 1. **Market Regime Dependency**: Performance may deteriorate in extremely trending markets where mean-reversion assumptions break down
 2. **Transaction Costs**: High-frequency trading requires tight execution to maintain profitability
-3. **Parameter Stability**: Sooner than quarterly re-optimization may be necessary to maintain performance.
+3 **Parameter Stability**: Sooner than quarterly re-optimization may be necessary to maintain performance.
 4. **Liquidity Requirements**: Strategy assumes sufficient market depth for position sizes
