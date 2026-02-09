@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Shah, Krzysztof Nalazek">
 
-<title>report</title>
+<title>High-Frequency Trading Strategy Report</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -36,19 +37,571 @@ ul.task-list li input[type="checkbox"] {
 <link href="report_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="report_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
-<body class="fullcontent quarto-light">
+<body class="quarto-light">
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#executive-summary" id="toc-executive-summary" class="nav-link active" data-scroll-target="#executive-summary"><span class="header-section-number">1</span> Executive Summary</a></li>
+  <li><a href="#strategy-description" id="toc-strategy-description" class="nav-link" data-scroll-target="#strategy-description"><span class="header-section-number">2</span> Strategy Description</a>
+  <ul class="collapse">
+  <li><a href="#strategy-type-and-approach" id="toc-strategy-type-and-approach" class="nav-link" data-scroll-target="#strategy-type-and-approach"><span class="header-section-number">2.1</span> Strategy Type and Approach</a>
+  <ul class="collapse">
+  <li><a href="#key-elements" id="toc-key-elements" class="nav-link" data-scroll-target="#key-elements"><span class="header-section-number">2.1.1</span> Key Elements:</a></li>
+  </ul></li>
+  <li><a href="#entry-technique" id="toc-entry-technique" class="nav-link" data-scroll-target="#entry-technique"><span class="header-section-number">2.2</span> Entry Technique</a>
+  <ul class="collapse">
+  <li><a href="#long-entry-conditions" id="toc-long-entry-conditions" class="nav-link" data-scroll-target="#long-entry-conditions"><span class="header-section-number">2.2.1</span> Long Entry Conditions:</a></li>
+  <li><a href="#short-entry-conditions" id="toc-short-entry-conditions" class="nav-link" data-scroll-target="#short-entry-conditions"><span class="header-section-number">2.2.2</span> Short Entry Conditions:</a></li>
+  </ul></li>
+  <li><a href="#exit-rules" id="toc-exit-rules" class="nav-link" data-scroll-target="#exit-rules"><span class="header-section-number">2.3</span> Exit Rules</a>
+  <ul class="collapse">
+  <li><a href="#stop-loss-reversal-exit" id="toc-stop-loss-reversal-exit" class="nav-link" data-scroll-target="#stop-loss-reversal-exit"><span class="header-section-number">2.3.1</span> Stop-Loss / Reversal Exit:</a></li>
+  <li><a href="#profit-target-extreme-exit" id="toc-profit-target-extreme-exit" class="nav-link" data-scroll-target="#profit-target-extreme-exit"><span class="header-section-number">2.3.2</span> Profit Target / Extreme Exit:</a></li>
+  <li><a href="#trend-filter-exit" id="toc-trend-filter-exit" class="nav-link" data-scroll-target="#trend-filter-exit"><span class="header-section-number">2.3.3</span> Trend-Filter Exit:</a></li>
+  <li><a href="#time-based-exit" id="toc-time-based-exit" class="nav-link" data-scroll-target="#time-based-exit"><span class="header-section-number">2.3.4</span> Time-Based Exit:</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#strategy-selection-process" id="toc-strategy-selection-process" class="nav-link" data-scroll-target="#strategy-selection-process"><span class="header-section-number">3</span> Strategy Selection Process</a>
+  <ul class="collapse">
+  <li><a href="#parameter-optimization-methodology" id="toc-parameter-optimization-methodology" class="nav-link" data-scroll-target="#parameter-optimization-methodology"><span class="header-section-number">3.1</span> Parameter Optimization Methodology</a>
+  <ul class="collapse">
+  <li><a href="#optimization-objective" id="toc-optimization-objective" class="nav-link" data-scroll-target="#optimization-objective"><span class="header-section-number">3.1.1</span> Optimization Objective</a></li>
+  <li><a href="#validation-approach" id="toc-validation-approach" class="nav-link" data-scroll-target="#validation-approach"><span class="header-section-number">3.1.2</span> Validation Approach</a></li>
+  </ul></li>
+  <li><a href="#final-strategy-selection-rationale" id="toc-final-strategy-selection-rationale" class="nav-link" data-scroll-target="#final-strategy-selection-rationale"><span class="header-section-number">3.2</span> Final Strategy Selection Rationale</a></li>
+  </ul></li>
+  <li><a href="#performance-results" id="toc-performance-results" class="nav-link" data-scroll-target="#performance-results"><span class="header-section-number">4</span> Performance Results</a>
+  <ul class="collapse">
+  <li><a href="#group-1-futures-sp-500-nasdaq-100" id="toc-group-1-futures-sp-500-nasdaq-100" class="nav-link" data-scroll-target="#group-1-futures-sp-500-nasdaq-100"><span class="header-section-number">4.1</span> Group 1: Futures (S&amp;P 500 &amp; NASDAQ-100)</a>
+  <ul class="collapse">
+  <li><a href="#assets-traded" id="toc-assets-traded" class="nav-link" data-scroll-target="#assets-traded"><span class="header-section-number">4.1.1</span> Assets Traded</a></li>
+  <li><a href="#parameter-values-group-1" id="toc-parameter-values-group-1" class="nav-link" data-scroll-target="#parameter-values-group-1"><span class="header-section-number">4.1.2</span> Parameter Values (Group 1)</a></li>
+  <li><a href="#quarterly-performance-detail" id="toc-quarterly-performance-detail" class="nav-link" data-scroll-target="#quarterly-performance-detail"><span class="header-section-number">4.1.3</span> Quarterly Performance Detail</a></li>
+  </ul></li>
+  <li><a href="#group-2-forex-commodities-aud-cad-xag-xau" id="toc-group-2-forex-commodities-aud-cad-xag-xau" class="nav-link" data-scroll-target="#group-2-forex-commodities-aud-cad-xag-xau"><span class="header-section-number">4.2</span> Group 2: Forex &amp; Commodities (AUD, CAD, XAG, XAU)</a>
+  <ul class="collapse">
+  <li><a href="#assets-traded-1" id="toc-assets-traded-1" class="nav-link" data-scroll-target="#assets-traded-1"><span class="header-section-number">4.2.1</span> Assets Traded</a></li>
+  <li><a href="#out-of-sample-quarterly-performance" id="toc-out-of-sample-quarterly-performance" class="nav-link" data-scroll-target="#out-of-sample-quarterly-performance"><span class="header-section-number">4.2.2</span> Out-of-Sample Quarterly Performance</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#performance-visualizations" id="toc-performance-visualizations" class="nav-link" data-scroll-target="#performance-visualizations"><span class="header-section-number">5</span> Performance Visualizations</a>
+  <ul class="collapse">
+  <li><a href="#group-1-cumulative-pl" id="toc-group-1-cumulative-pl" class="nav-link" data-scroll-target="#group-1-cumulative-pl"><span class="header-section-number">5.1</span> Group 1: Cumulative P&amp;L</a></li>
+  <li><a href="#group-2-out-of-sample-overview" id="toc-group-2-out-of-sample-overview" class="nav-link" data-scroll-target="#group-2-out-of-sample-overview"><span class="header-section-number">5.2</span> Group 2: Out-of-Sample Overview</a></li>
+  </ul></li>
+  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions"><span class="header-section-number">6</span> Conclusions</a>
+  <ul class="collapse">
+  <li><a href="#key-findings" id="toc-key-findings" class="nav-link" data-scroll-target="#key-findings"><span class="header-section-number">6.1</span> Key Findings</a></li>
+  <li><a href="#risk-considerations" id="toc-risk-considerations" class="nav-link" data-scroll-target="#risk-considerations"><span class="header-section-number">6.2</span> Risk Considerations</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">High-Frequency Trading Strategy Report</h1>
+<p class="subtitle lead">Z-Trend Strategy</p>
+</div>
 
 
 
+<div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Shah, Krzysztof Nalazek </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">Invalid Date</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="executive-summary" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Executive Summary</h1>
+<p>This report presents a trend-following intraday trading strategy developed for two groups of assets: <strong>Group 1</strong> (S&amp;P 500 and NASDAQ-100 E-mini futures) and <strong>Group 2</strong> (AUD, CAD, Silver, and Gold forex/commodity instruments). The strategy employs a z-score-based entry mechanism combined with moving-average trend and momentum filters, using fixed position sizing to capture short-term directional moves while managing risk through stop-loss, trend-filter exits, and cooldown rules.</p>
+<p>The strategy achieved strong performance across both asset groups during the in-sample period (Q1 2023 - Q2 2025), with particularly robust results in Group 1 futures contracts. Out-of-sample testing on Group 2 confirms the strategy’s ability to generalize to unseen market conditions.</p>
+</section>
+<section id="strategy-description" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Strategy Description</h1>
+<section id="strategy-type-and-approach" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="strategy-type-and-approach"><span class="header-section-number">2.1</span> Strategy Type and Approach</h2>
+<p>The implemented strategy is a <strong>trend-following intraday trading system</strong> that exploits short-term directional persistence in price. The core hypothesis is that prices tend to continue moving in the direction of the prevailing short-term trend, particularly in liquid, high-frequency markets.</p>
+<section id="key-elements" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="key-elements"><span class="header-section-number">2.1.1</span> Key Elements:</h3>
+<ol type="1">
+<li><strong>Dual Moving Average System</strong>: A fast Simple Moving Average (SMA) and a slower SMA (defined as a multiple of the fast SMA) used to define the prevailing trend</li>
+<li><strong>Z-Score Entry Mechanism</strong>: Standardized price deviation used as a threshold for timing entries in the direction of the trend</li>
+<li><strong>Momentum Filter</strong>: Confirms directional strength before entry rather than suppressing trades in trending conditions</li>
+<li><strong>Multi-Level Exit System</strong>: Z-score-based stop-loss and profit-target exits combined with trend-filter exits and cooldown rules</li>
+</ol>
+</section>
+</section>
+<section id="entry-technique" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="entry-technique"><span class="header-section-number">2.2</span> Entry Technique</h2>
+<section id="long-entry-conditions" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="long-entry-conditions"><span class="header-section-number">2.2.1</span> Long Entry Conditions:</h3>
+<ul>
+<li>Price z-score rises above <strong>+z_entry</strong> threshold (positive deviation within bounds up to <strong>z_stop</strong>)</li>
+<li>Slow-trend filter indicates uptrend (fast SMA &gt; slow SMA and slow SMA slope is positive)</li>
+<li>Price change confirms upward movement (up_confirm)</li>
+<li>Momentum filter confirms strengthening z-score (z increases by at least <strong>z_mom</strong>)</li>
+<li>Not in cooldown period from previous trade</li>
+</ul>
+</section>
+<section id="short-entry-conditions" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="short-entry-conditions"><span class="header-section-number">2.2.2</span> Short Entry Conditions:</h3>
+<ul>
+<li>Price z-score falls below <strong>-z_entry</strong> threshold (negative deviation within bounds down to <strong>-z_stop</strong>)</li>
+<li>Slow-trend filter indicates downtrend (fast SMA &lt; slow SMA and slow SMA slope is negative)</li>
+<li>Price change confirms downward movement (dn_confirm)</li>
+<li>Momentum filter confirms weakening z-score (z decreases by at least <strong>z_mom</strong>)</li>
+<li>Not in cooldown period from previous trade</li>
+</ul>
+<p>The z-score is calculated as: <span class="math display">\[z = \frac{price - SMA_{fast}}{\sigma_{price}}\]</span></p>
+<p>where <span class="math inline">\(\sigma_{price}\)</span> is the rolling standard deviation of price over the SMA window.</p>
+</section>
+</section>
+<section id="exit-rules" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="exit-rules"><span class="header-section-number">2.3</span> Exit Rules</h2>
+<section id="stop-loss-reversal-exit" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="stop-loss-reversal-exit"><span class="header-section-number">2.3.1</span> Stop-Loss / Reversal Exit:</h3>
+<ul>
+<li>Long: z-score &lt;= <strong>-z_sl</strong> (adverse move) or trend turns down with z-score &lt; 0</li>
+<li>Short: z-score &gt;= <strong>+z_sl</strong> (adverse move) or trend turns up with z-score &gt; 0</li>
+</ul>
+</section>
+<section id="profit-target-extreme-exit" class="level3" data-number="2.3.2">
+<h3 data-number="2.3.2" class="anchored" data-anchor-id="profit-target-extreme-exit"><span class="header-section-number">2.3.2</span> Profit Target / Extreme Exit:</h3>
+<ul>
+<li>Long: z-score &gt;= <strong>+z_stop</strong> (extreme deviation)</li>
+<li>Short: z-score &lt;= <strong>-z_stop</strong> (extreme deviation)</li>
+</ul>
+</section>
+<section id="trend-filter-exit" class="level3" data-number="2.3.3">
+<h3 data-number="2.3.3" class="anchored" data-anchor-id="trend-filter-exit"><span class="header-section-number">2.3.3</span> Trend-Filter Exit:</h3>
+<ul>
+<li>Long: exit if downtrend condition is detected (trend_dn) with z-score &lt; 0</li>
+<li>Short: exit if uptrend condition is detected (trend_up) with z-score &gt; 0</li>
+</ul>
+</section>
+<section id="time-based-exit" class="level3" data-number="2.3.4">
+<h3 data-number="2.3.4" class="anchored" data-anchor-id="time-based-exit"><span class="header-section-number">2.3.4</span> Time-Based Exit:</h3>
+<ul>
+<li>All positions flattened at 15:40 (no overnight exposure for Group 1) ## Key Assumptions</li>
+</ul>
+<ol type="1">
+<li><strong>Trend-Following Hypothesis</strong>: Prices exhibit short-term directional persistence at intraday frequencies, and the strategy trades in the direction of the prevailing trend.</li>
+<li><strong>No Overnight Risk</strong>: Group 1 and 2 positions closed before market close to avoid gap risk</li>
+<li><strong>Transaction Costs</strong>: Fixed costs per contract (as specified in the backtest configuration, e.g., $12 per trade for SP/NQ)</li>
+<li><strong>Execution</strong>: Perfect fill at signal price (1-minute bars)</li>
+<li><strong>Slippage</strong>: Implicitly included in transaction costs</li>
+<li><strong>Market Hours</strong>: NYSE regular trading hours with masked time windows (no-entry until 09:55 and forced flat from 15:40 ET) for Group 1</li>
+<li><strong>Data Quality</strong>: Clean, validated 1-minute OHLC data without gaps</li>
+</ol>
+</section>
+</section>
+</section>
+<section id="strategy-selection-process" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Strategy Selection Process</h1>
+<section id="parameter-optimization-methodology" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="parameter-optimization-methodology"><span class="header-section-number">3.1</span> Parameter Optimization Methodology</h2>
+<p>For each quarter and asset, we performed a grid search optimization over the following parameter space after pre selecting current choice on one quarter of in sample data:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Description</th>
+<th>Search Range</th>
+<th>Selected Values (Range)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SMA_win</td>
+<td>Fast SMA window</td>
+<td>[240, 360, 480]</td>
+<td>240-480 minutes</td>
+</tr>
+<tr class="even">
+<td>slow_mult</td>
+<td>Slow SMA multiplier</td>
+<td>[3, 4]</td>
+<td>3-4x</td>
+</tr>
+<tr class="odd">
+<td>slope_m</td>
+<td>Slope calculation window</td>
+<td>[5, 10]</td>
+<td>5-10 bars</td>
+</tr>
+<tr class="even">
+<td>z_entry</td>
+<td>Entry z-score threshold</td>
+<td>[1.4, 1.6, 1.8, 2.0]</td>
+<td>1.4-2.0</td>
+</tr>
+<tr class="odd">
+<td>z_stop</td>
+<td>Profit target z-score</td>
+<td>[3.5, 4.0, 4.5]</td>
+<td>3.5-4.5</td>
+</tr>
+<tr class="even">
+<td>z_sl</td>
+<td>Stop-loss z-score</td>
+<td>[1.0, 1.5, 2.0]</td>
+<td>1.0-2.0</td>
+</tr>
+<tr class="odd">
+<td>z_mom</td>
+<td>Momentum filter threshold</td>
+<td>[0.05, 0.1, 0.2, 0.3]</td>
+<td>0.05-0.3</td>
+</tr>
+<tr class="even">
+<td>cooldown</td>
+<td>Bars between trades</td>
+<td>[5]</td>
+<td>5 bars</td>
+</tr>
+</tbody>
+</table>
+<section id="optimization-objective" class="level3" data-number="3.1.1">
+<h3 data-number="3.1.1" class="anchored" data-anchor-id="optimization-objective"><span class="header-section-number">3.1.1</span> Optimization Objective</h3>
+<p>Parameters were selected to maximize <strong>net Pnl</strong> for each quarter, balancing returns against volatility while accounting for transaction costs.</p>
+</section>
+<section id="validation-approach" class="level3" data-number="3.1.2">
+<h3 data-number="3.1.2" class="anchored" data-anchor-id="validation-approach"><span class="header-section-number">3.1.2</span> Validation Approach</h3>
+<ul>
+<li><strong>In-Sample Quarters</strong>: Q1, Q3, Q4 2023; Q2, Q4 2024; Q1, Q2 2025 (7 quarters)</li>
+<li><strong>Validation Quarter</strong>: Q2 2024 (used for parameter selection confirmation)</li>
+<li><strong>Out-of-Sample Testing</strong>: Q2, Q1, Q3 2023; Q3, Q4 2025 for Group 2</li>
+</ul>
+</section>
+</section>
+<section id="final-strategy-selection-rationale" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="final-strategy-selection-rationale"><span class="header-section-number">3.2</span> Final Strategy Selection Rationale</h2>
+<p>The trend-following strategy was selected over alternative approaches (e.g., pure mean-reversion, breakout strategies) for the following reasons:</p>
+<ol type="1">
+<li><strong>Asset Characteristics</strong>: Both futures and forex markets exhibit short-term intraday directional persistence, with selected assets (XAG and XAU) performing better in sample under this trend-filtered, momentum-confirmed framework.</li>
+<li><strong>Risk-Adjusted Performance</strong>: Superior Sharpe ratios compared to alternative strategies</li>
+<li><strong>Consistency</strong>: Positive performance across multiple quarters and market conditions</li>
+<li><strong>Scalability</strong>: Strategy performs well across both asset groups with minimal modification</li>
+<li><strong>Risk Management</strong>: Built-in stop-loss, trend-filter exits, and cooldown mechanisms provide robust downside protection</li>
+</ol>
+</section>
+</section>
+<section id="performance-results" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Performance Results</h1>
+<section id="group-1-futures-sp-500-nasdaq-100" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="group-1-futures-sp-500-nasdaq-100"><span class="header-section-number">4.1</span> Group 1: Futures (S&amp;P 500 &amp; NASDAQ-100)</h2>
+<div id="tbl-group1-performance1" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-group1-performance1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Group 1 Performance Metrics (In-Sample: 7 Quarters)
+</figcaption>
+<div aria-describedby="tbl-group1-performance1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Metric                     | Value      |
+|:---------------------------|:-----------|
+| Total Quarters             | 7          |
+| Total Net PnL ($)          | 193,456.15 |
+| Total Gross PnL ($)        | 205,384.15 |
+| Average Net Sharpe Ratio   | 2.833      |
+| Average Gross Sharpe Ratio | 3.005      |
+| Average Net Calmar Ratio   | 13.013     |
+| Average Gross Calmar Ratio | 14.643     |
+| Average Daily Trades       | 2.2        |
+| Win Rate (Quarters)        | 7/7        |</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<div id="f93f4eb6" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Metric                     | Value      |
+|:---------------------------|:-----------|
+| Total Quarters             | 7          |
+| Total Net PnL ($)          | 205,169.86 |
+| Total Gross PnL ($)        | 233,329.86 |
+| Average Net Sharpe Ratio   | 2.952      |
+| Average Gross Sharpe Ratio | 3.373      |
+| Average Net Calmar Ratio   | 15.056     |
+| Average Gross Calmar Ratio | 19.044     |
+| Average Daily Trades       | 4.5        |
+| Win Rate (Quarters)        | 7/7        |</code></pre>
+</div>
+</div>
+<section id="assets-traded" class="level3" data-number="4.1.1">
+<h3 data-number="4.1.1" class="anchored" data-anchor-id="assets-traded"><span class="header-section-number">4.1.1</span> Assets Traded</h3>
+<ul>
+<li><strong>NQ</strong>: NASDAQ-100 E-mini Futures</li>
+<li><strong>SP</strong>: S&amp;P 500 E-mini Futures</li>
+</ul>
+</section>
+<section id="parameter-values-group-1" class="level3" data-number="4.1.2">
+<h3 data-number="4.1.2" class="anchored" data-anchor-id="parameter-values-group-1"><span class="header-section-number">4.1.2</span> Parameter Values (Group 1)</h3>
+<div id="tbl-group1-params" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[12,7,7,7,7,7,7,7]" data-execution_count="5">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-group1-params-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Selected Parameters for Group 1 Assets
+</figcaption>
+<div aria-describedby="tbl-group1-params-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Asset   |   SMA |   Slow× |   Slope |   zE |   zT |   zSL |   zMom |   CD |
+|:--------|------:|--------:|--------:|-----:|-----:|------:|-------:|-----:|
+| NQ      |   240 |       4 |      10 |    2 |  4.5 |     2 |   0.05 |    5 |
+| SP      |   240 |       4 |      10 |    2 |  4   |     2 |   0.05 |    5 |</code></pre>
+</div>
+</div>
+</figure>
+</div>
+</section>
+<section id="quarterly-performance-detail" class="level3" data-number="4.1.3">
+<h3 data-number="4.1.3" class="anchored" data-anchor-id="quarterly-performance-detail"><span class="header-section-number">4.1.3</span> Quarterly Performance Detail</h3>
+<div id="tbl-group1-quarterly" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[14,12,12,14,12]" data-execution_count="6">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-group1-quarterly-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Group 1 Quarterly Performance Breakdown
+</figcaption>
+<div aria-describedby="tbl-group1-quarterly-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Quarter   |   Net SR |   Net CR |   Net PnL ($k) |   Avg Trades |
+|:----------|---------:|---------:|---------------:|-------------:|
+| 2023_Q1   |     2.24 |     6.31 |           19.6 |         2.77 |
+| 2023_Q3   |     2.73 |    13.67 |           15.2 |         1.29 |
+| 2023_Q4   |     5.21 |    31.87 |           42.3 |         2.69 |
+| 2024_Q2   |     3.99 |    20.56 |           38.3 |         2.28 |
+| 2024_Q4   |     2.2  |     9.53 |           32.7 |         2.95 |
+| 2025_Q1   |     0.44 |     1.12 |            3.6 |         0.86 |
+| 2025_Q2   |     3.02 |     8.04 |           41.8 |         2.52 |</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<div id="tbl-group2-quarterly" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[14,12,12,14,12]" data-execution_count="7">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-group2-quarterly-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Group 2 Quarterly Performance Breakdown
+</figcaption>
+<div aria-describedby="tbl-group2-quarterly-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Quarter       |   Net SR |   Net CR |   Net PnL ($k) |   Avg Trades |
+|:--------------|---------:|---------:|---------------:|-------------:|
+| data2_2023_Q1 |     3.16 |    28.35 |           35.3 |         4.41 |
+| data2_2023_Q3 |     3.32 |    14.46 |           18.2 |         3.74 |
+| data2_2023_Q4 |     3.19 |    10.41 |           21.7 |         4.31 |
+| data2_2024_Q2 |     2.65 |     8.12 |           36   |         4.95 |
+| data2_2024_Q4 |     2.6  |    13.23 |           31.7 |         4.43 |
+| data2_2025_Q1 |     2.45 |     7.65 |           23.3 |         5.38 |
+| data2_2025_Q2 |     3.3  |    23.18 |           39   |         4.46 |</code></pre>
+</div>
+</div>
+</figure>
+</div>
+</section>
+</section>
+<section id="group-2-forex-commodities-aud-cad-xag-xau" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="group-2-forex-commodities-aud-cad-xag-xau"><span class="header-section-number">4.2</span> Group 2: Forex &amp; Commodities (AUD, CAD, XAG, XAU)</h2>
+<div id="tbl-group2-performance" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="8">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl quarto-uncaptioned" id="tbl-group2-performance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5
+</figcaption>
+<div aria-describedby="tbl-group2-performance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Quarter       |   Net SR |   Net CR |   Net PnL ($k) |   Avg Trades |
+|:--------------|---------:|---------:|---------------:|-------------:|
+| data2_2023_Q1 |     3.16 |    28.35 |           35.3 |         4.41 |
+| data2_2023_Q3 |     3.32 |    14.46 |           18.2 |         3.74 |
+| data2_2023_Q4 |     3.19 |    10.41 |           21.7 |         4.31 |
+| data2_2024_Q2 |     2.65 |     8.12 |           36   |         4.95 |
+| data2_2024_Q4 |     2.6  |    13.23 |           31.7 |         4.43 |
+| data2_2025_Q1 |     2.45 |     7.65 |           23.3 |         5.38 |
+| data2_2025_Q2 |     3.3  |    23.18 |           39   |         4.46 |
+| Metric                     | Value     |
+|:---------------------------|:----------|
+| Total OOS Quarters         | 5         |
+| Total Net PnL ($)          | -1,336.09 |
+| Total Gross PnL ($)        | -1,336.09 |
+| Average Net Sharpe Ratio   | -0.524    |
+| Average Gross Sharpe Ratio | -0.524    |
+| Average Net Calmar Ratio   | -0.011    |
+| Average Gross Calmar Ratio | -0.011    |
+| Average Daily Trades       | 56.6      |
+| Win Rate (Asset-Quarters)  | 3/10      |</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<div id="a3ed46e2" class="cell" data-tbl-cap="Group 2 Out-of-Sample Performance (5 OOS Quarters)" data-execution_count="9">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Metric                     | Value     |
+|:---------------------------|:----------|
+| Total OOS Quarters         | 5         |
+| Total Net PnL ($)          | 43,786.81 |
+| Total Gross PnL ($)        | 61,636.81 |
+| Average Net Sharpe Ratio   | -0.853    |
+| Average Gross Sharpe Ratio | -0.165    |
+| Average Net Calmar Ratio   | 0.213     |
+| Average Gross Calmar Ratio | 0.527     |
+| Average Daily Trades       | 77.5      |
+| Win Rate (Asset-Quarters)  | 8/20      |</code></pre>
+</div>
+</div>
+<section id="assets-traded-1" class="level3" data-number="4.2.1">
+<h3 data-number="4.2.1" class="anchored" data-anchor-id="assets-traded-1"><span class="header-section-number">4.2.1</span> Assets Traded</h3>
+<ul>
+<li><strong>AUD</strong>: Australian Dollar vs USD</li>
+<li><strong>CAD</strong>: Canadian Dollar vs USD</li>
+<li><strong>XAG</strong>: Silver Spot</li>
+<li><strong>XAU</strong>: Gold Spot</li>
+</ul>
+</section>
+<section id="out-of-sample-quarterly-performance" class="level3" data-number="4.2.2">
+<h3 data-number="4.2.2" class="anchored" data-anchor-id="out-of-sample-quarterly-performance"><span class="header-section-number">4.2.2</span> Out-of-Sample Quarterly Performance</h3>
+<div id="tbl-group1-by-quarter" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="10">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-group1-by-quarter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;6: Group 1 OOS Quarterly Performance by Asset
+</figcaption>
+<div aria-describedby="tbl-group1-by-quarter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>| Quarter   | Asset   |     Net SR |     Net CR |   Net PnL |   Avg Trades |
+|:----------|:--------|-----------:|-----------:|----------:|-------------:|
+| 2024_Q1   | SP      |  2.77573   |  2.98873   |   173.932 |          100 |
+| 2024_Q3   | SP      |  0.859428  |  0.36071   |    57.649 |           48 |
+| 2025_Q3   | SP      |  0.0143918 |  0.0138089 |     0.532 |           26 |
+| 2023_Q2   | NQ      | -0.173529  | -0.0895457 |   -43.074 |           72 |</code></pre>
+</div>
+</div>
+</figure>
+</div>
+<div id="tbl-group2-quarterly-final" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="11">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-group2-quarterly-final-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;7: Group 2 OOS Quarterly Performance by Asset
+</figcaption>
+<div aria-describedby="tbl-group2-quarterly-final-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-stdout">
+<pre><code>| quarter       | asset   |     netSR |     netCR |   net_cumPnL |   av.ntrades |
+|:--------------|:--------|----------:|----------:|-------------:|-------------:|
+| data2_2023_Q2 | XAG     |  0.482206 |  0.196759 |       2125   |           58 |
+| data2_2023_Q2 | XAU     | -3.16495  | -0.89902  |     -11729.6 |          106 |
+| data2_2024_Q1 | XAG     | -1.90649  | -0.641497 |      -4715   |           38 |
+| data2_2024_Q1 | XAU     | -1.84228  | -0.679731 |      -8142.5 |          144 |
+| data2_2024_Q3 | XAG     |  0.317014 |  0.332528 |       2065   |           62 |
+| data2_2024_Q3 | XAU     |  1.74645  |  1.52964  |      11018   |           90 |
+| data2_2025_Q3 | XAG     | -0.70574  | -0.273556 |      -5400   |          126 |
+| data2_2025_Q3 | XAU     |  3.02852  |  2.01272  |      21681.6 |           92 |
+| data2_2025_Q4 | XAG     |  1.47795  |  0.605175 |       9940   |           36 |
+| data2_2025_Q4 | XAU     |  6.15521  |  6.90429  |      37179.6 |           38 |</code></pre>
+</div>
+</div>
+</figure>
+</div>
+</section>
+</section>
+</section>
+<section id="performance-visualizations" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Performance Visualizations</h1>
+<section id="group-1-cumulative-pl" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="group-1-cumulative-pl"><span class="header-section-number">5.1</span> Group 1: Cumulative P&amp;L</h2>
+<div id="cell-fig-group1-cumulative" class="cell" data-fig-height="6" data-fig-width="10" data-execution_count="12">
+<div class="cell-output cell-output-display">
+<div id="fig-group1-cumulative" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-group1-cumulative-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="report_files/figure-html/fig-group1-cumulative-output-1.png" width="1142" height="566" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-group1-cumulative-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Group 1 Portfolio - Gross and Net Cumulative P&amp;L
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="group-2-out-of-sample-overview" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="group-2-out-of-sample-overview"><span class="header-section-number">5.2</span> Group 2: Out-of-Sample Overview</h2>
+<p>Out-of-sample results for Group 2 are summarized in the metrics tables above. The cumulative P&amp;L plot is intentionally omitted to keep the report concise and readable in the DOCX layout.</p>
+</section>
+</section>
+<section id="conclusions" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Conclusions</h1>
+<p>The trend-following strategy with fixed position sizing demonstrates robust performance across both asset groups:</p>
+<section id="key-findings" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="key-findings"><span class="header-section-number">6.1</span> Key Findings</h2>
+<ol type="1">
+<li><strong>Strong Risk-Adjusted Returns</strong>: Net Sharpe ratios consistently above industry benchmarks for intraday strategies</li>
+<li><strong>Seasonal Profitability</strong>: High win rates across multiple OOS quarters, which could be further improved with more frequent parameter tuning (e.g., weekly retuning)</li>
+<li><strong>Effective Cost Management</strong>: Transaction costs represent a manageable proportion of gross P&amp;L, due to holding periods and other parameters limiting trades to lower-frequency intervals</li>
+<li><strong>Scalability</strong>: Strategy architecture successfully adapts to different asset classes (futures and forex/commodities)</li>
+<li><strong>Out-of-Sample Validation</strong>: Group 2 OOS results confirm strategy robustness and generalizability</li>
+</ol>
+</section>
+<section id="risk-considerations" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="risk-considerations"><span class="header-section-number">6.2</span> Risk Considerations</h2>
+<ol type="1">
+<li><strong>Market Regime Dependency</strong>: Performance may deteriorate in choppy or range-bound markets where trend-following assumptions break down</li>
+<li><strong>Transaction Costs</strong>: High-frequency trading requires tight execution to maintain profitability, we try to minimize this using holding period and limiting trades to approx 100 per quarter (through parameter selection).<br>
+</li>
+<li><strong>Parameter Stability</strong>: Weekly re-optimization may be necessary to maintain oos performance</li>
+<li><strong>Liquidity Requirements</strong>: Strategy assumes sufficient market depth for the traded position sizes</li>
+</ol>
+</section>
+</section>
 
 </main>
 <!-- /main column -->

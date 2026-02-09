@@ -1,7 +1,7 @@
 ---
 title: "High-Frequency Trading Strategy Report"
-subtitle: "Mean-Reversion Strategy with Volatility-Based Position Sizing"
-author: "Krzysztof Nalazek, Shah"
+subtitle: "Z-Trend Strategy"
+author: "Shah, Krzysztof Nalazek"
 date: 25.01.2026
 format:
   docx:
@@ -44,7 +44,7 @@ grp1_params = summary_df[summary_df['quarter'].str.contains('data1')].copy()
 
 # Executive Summary
 
-This report presents a mean-reversion trading strategy developed for two groups of assets: **Group 1** (S&P 500 and NASDAQ-100 E-mini futures) and **Group 2** (AUD, CAD, Silver, and Gold forex/commodity instruments). The strategy employs a z-score-based entry mechanism combined with volatility-based position sizing to capture short-term price reversions while managing risk dynamically.
+This report presents a trend-following intraday trading strategy developed for two groups of assets: **Group 1** (S&P 500 and NASDAQ-100 E-mini futures) and **Group 2** (AUD, CAD, Silver, and Gold forex/commodity instruments). The strategy employs a z-score-based entry mechanism combined with moving-average trend and momentum filters, using fixed position sizing to capture short-term directional moves while managing risk through stop-loss, trend-filter exits, and cooldown rules.
 
 The strategy achieved strong performance across both asset groups during the in-sample period (Q1 2023 - Q2 2025), with particularly robust results in Group 1 futures contracts. Out-of-sample testing on Group 2 confirms the strategy's ability to generalize to unseen market conditions.
 
@@ -52,80 +52,74 @@ The strategy achieved strong performance across both asset groups during the in-
 
 ## Strategy Type and Approach
 
-The implemented strategy is a **mean-reversion intraday trading system** that exploits temporary price deviations from equilibrium. The core hypothesis is that prices tend to revert to their short-term moving average after experiencing statistically significant deviations, particularly in liquid, high-frequency markets.
+The implemented strategy is a **trend-following intraday trading system** that exploits short-term directional persistence in price. The core hypothesis is that prices tend to continue moving in the direction of the prevailing short-term trend, particularly in liquid, high-frequency markets.
 
 ### Key Elements:
 
-1. **Dual Moving Average System**: A fast Simple Moving Average (SMA) and a slower SMA (defined as a multiple of the fast SMA)
-2. **Z-Score Entry Mechanism**: Statistical distance measurement for identifying extreme price deviations
-3. **Volatility-Based Position Sizing**: Dynamic position adjustment based on realized volatility
-4. **Momentum Filter**: Prevents entries during strong trending conditions
-5. **Multi-Level Exit System**: Stop-loss, profit target, and mean-reversion exit conditions
+1. **Dual Moving Average System**: A fast Simple Moving Average (SMA) and a slower SMA (defined as a multiple of the fast SMA) used to define the prevailing trend
+2. **Z-Score Entry Mechanism**: Standardized price deviation used as a threshold for timing entries in the direction of the trend
+3. **Momentum Filter**: Confirms directional strength before entry rather than suppressing trades in trending conditions
+4. **Multi-Level Exit System**: Z-score-based stop-loss and profit-target exits combined with trend-filter exits and cooldown rules
 
 ## Entry Technique
 
 ### Long Entry Conditions:
-- Price z-score falls below **-z_entry** threshold (oversold condition)
-- Current slope is negative (downward movement)
-- Price is below the fast SMA
-- Momentum filter allows entry (|momentum| < z_mom threshold)
-- Not in cooldown period from previous trade
+
+* Price z-score rises above **+z_entry** threshold (positive deviation within bounds up to **z_stop**)
+* Slow-trend filter indicates uptrend (fast SMA > slow SMA and slow SMA slope is positive)
+* Price change confirms upward movement (up_confirm)
+* Momentum filter confirms strengthening z-score (z increases by at least **z_mom**)
+* Not in cooldown period from previous trade
 
 ### Short Entry Conditions:
-- Price z-score rises above **+z_entry** threshold (overbought condition)  
-- Current slope is positive (upward movement)
-- Price is above the fast SMA
-- Momentum filter allows entry
-- Not in cooldown period from previous trade
+
+* Price z-score falls below **-z_entry** threshold (negative deviation within bounds down to **-z_stop**)
+* Slow-trend filter indicates downtrend (fast SMA < slow SMA and slow SMA slope is negative)
+* Price change confirms downward movement (dn_confirm)
+* Momentum filter confirms weakening z-score (z decreases by at least **z_mom**)
+* Not in cooldown period from previous trade
 
 The z-score is calculated as:
 $$z = \frac{price - SMA_{fast}}{\sigma_{price}}$$
 
 where $\sigma_{price}$ is the rolling standard deviation of price over the SMA window.
 
-## Position Sizing
-
-Position size is determined using a volatility-based approach:
-
-$$Position\ Size = \frac{Base\ Capital}{\sigma_{price} \times Contract\ Multiplier}$$
-
-This ensures:
-- Larger positions during low volatility (stable) conditions
-- Smaller positions during high volatility (risky) conditions
-- Consistent risk exposure across different market regimes
 
 ## Exit Rules
 
-### Stop-Loss Exit:
-- Long: z-score < -z_sl (extended oversold)
-- Short: z-score > +z_sl (extended overbought)
+### Stop-Loss / Reversal Exit:
 
-### Profit Target:
-- Long: z-score > +z_stop (overbought reversal)
-- Short: z-score < -z_stop (oversold reversal)
+* Long: z-score <= **-z_sl** (adverse move) or trend turns down with z-score < 0
+* Short: z-score >= **+z_sl** (adverse move) or trend turns up with z-score > 0
 
-### Mean-Reversion Exit:
-- Long: Price crosses above fast SMA
-- Short: Price crosses below fast SMA
+### Profit Target / Extreme Exit:
+
+* Long: z-score >= **+z_stop** (extreme deviation)
+* Short: z-score <= **-z_stop** (extreme deviation)
+
+### Trend-Filter Exit:
+
+* Long: exit if downtrend condition is detected (trend_dn) with z-score < 0
+* Short: exit if uptrend condition is detected (trend_up) with z-score > 0
 
 ### Time-Based Exit:
-- All positions flattened at 15:40 (no overnight exposure for Group 1)
 
+* All positions flattened at 15:40 (no overnight exposure for Group 1)
 ## Key Assumptions
 
-1. **Mean-Reversion Hypothesis**: Prices exhibit mean-reverting behavior at intraday frequencies
-2. **No Overnight Risk**: Group 1 positions closed before market close to avoid gap risk
-3. **Transaction Costs**: Fixed costs per contract ($2.50 for futures, $10 for forex/commodities)
+1. **Trend-Following Hypothesis**: Prices exhibit short-term directional persistence at intraday frequencies, and the strategy trades in the direction of the prevailing trend.
+2. **No Overnight Risk**: Group 1 and 2 positions closed before market close to avoid gap risk
+3. **Transaction Costs**: Fixed costs per contract (as specified in the backtest configuration, e.g., $12 per trade for SP/NQ)
 4. **Execution**: Perfect fill at signal price (1-minute bars)
 5. **Slippage**: Implicitly included in transaction costs
-6. **Market Hours**: NYSE regular trading hours (9:30 AM - 4:00 PM ET) for Group 1
+6. **Market Hours**: NYSE regular trading hours with masked time windows (no-entry until 09:55 and forced flat from 15:40 ET) for Group 1
 7. **Data Quality**: Clean, validated 1-minute OHLC data without gaps
 
 # Strategy Selection Process
 
 ## Parameter Optimization Methodology
 
-For each quarter and asset, we performed a grid search optimization over the following parameter space:
+For each quarter and asset, we performed a grid search optimization over the following parameter space after pre selecting current choice on one quarter of in sample data:
 
 | Parameter | Description | Search Range | Selected Values (Range) |
 |-----------|-------------|--------------|------------------------|
@@ -150,13 +144,13 @@ Parameters were selected to maximize **net Pnl** for each quarter, balancing ret
 
 ## Final Strategy Selection Rationale
 
-The mean-reversion strategy was selected over alternative approaches (e.g., trend-following, breakout strategies) for the following reasons:
+The trend-following strategy was selected over alternative approaches (e.g., pure mean-reversion, breakout strategies) for the following reasons:
 
-1. **Asset Characteristics**: Both futures and forex markets exhibit strong intraday mean-reversion properties with selected assets (XAG and XAU) perofrming better in sample.
+1. **Asset Characteristics**: Both futures and forex markets exhibit short-term intraday directional persistence, with selected assets (XAG and XAU) performing better in sample under this trend-filtered, momentum-confirmed framework.
 2. **Risk-Adjusted Performance**: Superior Sharpe ratios compared to alternative strategies
 3. **Consistency**: Positive performance across multiple quarters and market conditions
 4. **Scalability**: Strategy performs well across both asset groups with minimal modification
-5. **Risk Management**: Built-in position sizing and stop-loss mechanisms provide robust downside protection
+5. **Risk Management**: Built-in stop-loss, trend-filter exits, and cooldown mechanisms provide robust downside protection
 
 # Performance Results
 
@@ -576,7 +570,7 @@ Out-of-sample results for Group 2 are summarized in the metrics tables above. Th
 
 ```{python}
 #| label: fig-group2-oos-cumulative
-#| eval: false
+#| eval: true
 #| echo: false
 #| include: false
 #| fig-cap: "Group 2 Portfolio - Gross and Net Cumulative P&L"
@@ -592,7 +586,9 @@ for fp in sorted(Path("../Testing/outputs_Strategy02_grp2").glob("data2_*_PORTFO
     all_daily_grp1.append(daily)
 
 if all_daily_grp1:
-    portfolio_full_grp1 = pd.concat(all_daily_grp1, ignore_index=True).sort_values("date")
+    portfolio_full_grp1 = pd.concat(all_daily_grp1, ignore_index=True)
+    portfolio_full_grp1["date"] = pd.to_datetime(portfolio_full_grp1["date"], utc=True).dt.tz_convert(None)
+    portfolio_full_grp1 = portfolio_full_grp1.sort_values("date")
     portfolio_full_grp1["cum_net_pnl"] = portfolio_full_grp1["net_pnl"].cumsum()
     portfolio_full_grp1["cum_gross_pnl"] = portfolio_full_grp1["gross_pnl"].cumsum()
     
@@ -634,19 +630,19 @@ if all_daily_grp1:
 
 # Conclusions
 
-The mean-reversion strategy with volatility-based position sizing demonstrates robust performance across both asset groups:
+The trend-following strategy with fixed position sizing demonstrates robust performance across both asset groups:
 
 ## Key Findings
 
 1. **Strong Risk-Adjusted Returns**: Net Sharpe ratios consistently above industry benchmarks for intraday strategies
-2. **Seasonal Profitability**: High win rates across multiple oos quarters, which could be better with frequent parameter tuning.(Eg. Weekly retuning)
-3. **Effective Cost Management**: Transaction costs represent a manageable proportion of gross P&L, due to holding period and other parameters limiting trade to lower frequency intervals.
-4. **Scalability**: Strategy architecture successfully adapts to different asset classes (futures and forex/commodities).
+2. **Seasonal Profitability**: High win rates across multiple OOS quarters, which could be further improved with more frequent parameter tuning (e.g., weekly retuning)
+3. **Effective Cost Management**: Transaction costs represent a manageable proportion of gross P&L, due to holding periods and other parameters limiting trades to lower-frequency intervals
+4. **Scalability**: Strategy architecture successfully adapts to different asset classes (futures and forex/commodities)
 5. **Out-of-Sample Validation**: Group 2 OOS results confirm strategy robustness and generalizability
 
 ## Risk Considerations
 
-1. **Market Regime Dependency**: Performance may deteriorate in extremely trending markets where mean-reversion assumptions break down
-2. **Transaction Costs**: High-frequency trading requires tight execution to maintain profitability
-3 **Parameter Stability**: Sooner than quarterly re-optimization may be necessary to maintain performance.
-4. **Liquidity Requirements**: Strategy assumes sufficient market depth for position sizes
+1. **Market Regime Dependency**: Performance may deteriorate in choppy or range-bound markets where trend-following assumptions break down
+2. **Transaction Costs**: High-frequency trading requires tight execution to maintain profitability, we try to minimize this using holding period and limiting trades to approx 100 per quarter (through parameter selection).  
+3. **Parameter Stability**: Weekly re-optimization may be necessary to maintain oos performance
+4. **Liquidity Requirements**: Strategy assumes sufficient market depth for the traded position sizes
