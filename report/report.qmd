@@ -20,17 +20,31 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from pathlib import Path
 
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path.cwd().parent))  # adds project root
 # Load performance data
-perf_df = pd.read_csv("../Testing/outputs_strategy02/strategy02_perf.csv")
-summary_df = pd.read_csv("../Testing/outputs_strategy02/strategy02_summary.csv")
+perf_df = pd.read_csv("../Testing/outputs_strategy02_grp1/strategy02_perf.csv")
+summary_df = pd.read_csv("../Testing/outputs_strategy02_grp2/strategy02_IS_perf.csv")
 
 # Load OOS performance for Group 2
+
+oos_perf_grp1 = pd.read_csv("../Testing/outputs_OOS_grp1/strategy02_perf.csv")
 oos_perf_grp2 = pd.read_csv("../Testing/outputs_OOS_grp2/strategy02_perf.csv")
+
+
+
+oos_quarters = ["data2_2023_Q2", "data2_2024_Q1", "data2_2024_Q3", "data2_2025_Q3", "data2_2025_Q4"]
+grp2_oos = oos_perf_grp2[oos_perf_grp2['quarter'].isin(oos_quarters)].copy()
+
+grp2_oos
+grp1_params = summary_df[summary_df['quarter'].str.contains('data1')].copy()
 ```
 
 # Executive Summary
 
-This report presents a mean-reversion trading strategy developed for two groups of assets: **Group 1** (S&P 500 and NASDAQ-100 E-mini futures) and **Group 2** (AUD, CAD, Silver, and Gold forex/commodity instruments). The strategy employs a sophisticated z-score-based entry mechanism combined with volatility-based position sizing to capture short-term price reversions while managing risk dynamically.
+This report presents a mean-reversion trading strategy developed for two groups of assets: **Group 1** (S&P 500 and NASDAQ-100 E-mini futures) and **Group 2** (AUD, CAD, Silver, and Gold forex/commodity instruments). The strategy employs a z-score-based entry mechanism combined with volatility-based position sizing to capture short-term price reversions while managing risk dynamically.
 
 The strategy achieved strong performance across both asset groups during the in-sample period (Q1 2023 - Q2 2025), with particularly robust results in Group 1 futures contracts. Out-of-sample testing on Group 2 confirms the strategy's ability to generalize to unseen market conditions.
 
@@ -126,7 +140,7 @@ For each quarter and asset, we performed a grid search optimization over the fol
 
 ### Optimization Objective
 
-Parameters were selected to maximize **net Sharpe ratio** for each quarter, balancing returns against volatility while accounting for transaction costs.
+Parameters were selected to maximize **net Pnl** for each quarter, balancing returns against volatility while accounting for transaction costs.
 
 ### Validation Approach
 
@@ -138,7 +152,7 @@ Parameters were selected to maximize **net Sharpe ratio** for each quarter, bala
 
 The mean-reversion strategy was selected over alternative approaches (e.g., trend-following, breakout strategies) for the following reasons:
 
-1. **Asset Characteristics**: Both futures and forex markets exhibit strong intraday mean-reversion properties due to high liquidity and efficiency
+1. **Asset Characteristics**: Both futures and forex markets exhibit strong intraday mean-reversion properties with selected assets (XAG and XAU) perofrming better in sample.
 2. **Risk-Adjusted Performance**: Superior Sharpe ratios compared to alternative strategies
 3. **Consistency**: Positive performance across multiple quarters and market conditions
 4. **Scalability**: Strategy performs well across both asset groups with minimal modification
@@ -152,8 +166,39 @@ The mean-reversion strategy was selected over alternative approaches (e.g., tren
 #| label: tbl-group1-performance
 #| tbl-cap: "Group 1 Performance Metrics (In-Sample: 7 Quarters)"
 
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from pathlib import Path
+
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path.cwd().parent))  # adds project root
+# Load performance data
+perf_df1 = pd.read_csv("../Testing/outputs_Strategy02_grp1/strategy02_perf.csv")
+perf_df2 = pd.read_csv("../Testing/outputs_Strategy02_grp2/strategy02_IS_perf.csv")
+
+summary_df_grp1 = pd.read_csv("../Testing/outputs_Strategy02_grp1/strategy02_summary.csv")
+summary_df_grp2 = pd.read_csv("../Testing/outputs_Strategy02_grp2/strategy02_IS_perf.csv")
+
+bestParamsGrp2 = pd.read_pickle("../Testing/outputs_Strategy02_grp2/best_params_per_quarter.sav")
+
+# Load OOS performance for Group 1 and 2
+
+oos_perf_grp1 = pd.read_csv("../Testing/outputs_OOS_grp1/strategy02_perf.csv")
+oos_perf_grp2 = pd.read_csv("../Testing/outputs_OOS_grp2/strategy02_perf.csv")
+
+```
+
+```{python}
+#| label: tbl-group1-performance1
+#| tbl-cap: "Group 1 Performance Metrics (In-Sample: 7 Quarters)"
+
 # Filter for Group 1 assets and PORTFOLIO
-grp1_perf = perf_df[perf_df['quarter'].str.contains('data1')].copy()
+grp1_perf = perf_df1[perf_df1['quarter'].str.contains('data1')].copy()
 
 # Get portfolio results
 portfolio_grp1 = grp1_perf[grp1_perf['asset'] == 'PORTFOLIO'].copy()
@@ -184,8 +229,50 @@ summary_stats = {
     ]
 }
 
+
 summary_table = pd.DataFrame(summary_stats)
 print(summary_table.to_markdown(index=False))
+```
+
+```{python}
+# Filter for Group 2 assets and PORTFOLIO
+grp2_perf = perf_df2[perf_df2['quarter'].astype(str).str.contains('data2', na=False)].copy()
+
+perf_df2
+grp2_perf
+# Get portfolio results
+portfolio_grp2 = grp2_perf[grp2_perf['asset'] == 'PORTFOLIO'].copy()
+
+# Calculate summary statistics
+summary_stats2 = {
+    'Metric': [
+        'Total Quarters',
+        'Total Net PnL ($)',
+        'Total Gross PnL ($)',
+        'Average Net Sharpe Ratio',
+        'Average Gross Sharpe Ratio',
+        'Average Net Calmar Ratio',
+        'Average Gross Calmar Ratio',
+        'Average Daily Trades',
+        'Win Rate (Quarters)',
+    ],
+    'Value': [
+        len(portfolio_grp2),
+        f"{portfolio_grp2['net_cumPnL'].sum():,.2f}",
+        f"{portfolio_grp2['gross_cumPnL'].sum():,.2f}",
+        f"{portfolio_grp2['netSR'].mean():.3f}",
+        f"{portfolio_grp2['grossSR'].mean():.3f}",
+        f"{portfolio_grp2['netCR'].mean():.3f}",
+        f"{portfolio_grp2['grossCR'].mean():.3f}",
+        f"{portfolio_grp2['av.ntrades'].mean():.1f}",
+        f"{(portfolio_grp2['net_cumPnL'] > 0).sum()}/{len(portfolio_grp2)}",
+    ]
+}
+
+summary_table2 = pd.DataFrame(summary_stats2)
+print(summary_table2.to_markdown(index=False))
+
+
 ```
 
 ### Assets Traded
@@ -199,7 +286,7 @@ print(summary_table.to_markdown(index=False))
 #| tbl-cap: "Selected Parameters for Group 1 Assets"
 #| tbl-colwidths: [12,7,7,7,7,7,7,7]
 
-grp1_params = summary_df[summary_df['quarter'].str.contains('data1')].copy()
+grp1_params = summary_df_grp1[summary_df_grp1['quarter'].str.contains('data1')].copy()
 
 # Use final quarter parameters and keep the narrowest set of columns to fit Docx width
 final_params = grp1_params[grp1_params['quarter'] == 'data1_2025_Q2'][
@@ -249,12 +336,98 @@ quarterly_detail[num_cols] = quarterly_detail[num_cols].apply(lambda s: s.round(
 print(quarterly_detail.to_markdown(index=False))
 ```
 
+```{python}
+#| label: tbl-group2-quarterly
+#| tbl-cap: "Group 2 Quarterly Performance Breakdown"
+#| tbl-colwidths: [14,12,12,14,12]
+
+quarterly_detail = portfolio_grp2[[
+    'quarter', 'netSR', 'netCR', 'net_cumPnL', 'av.ntrades'
+]].copy()
+
+quarterly_detail['quarter'] = quarterly_detail['quarter'].str.replace('data1_', '')
+quarterly_detail = quarterly_detail.rename(columns={
+    'quarter': 'Quarter',
+    'netSR': 'Net SR',
+    'netCR': 'Net CR',
+    'net_cumPnL': 'Net PnL ($k)',
+    'av.ntrades': 'Avg Trades'
+})
+
+# Compact formatting for docx layout
+quarterly_detail['Net PnL ($k)'] = (quarterly_detail['Net PnL ($k)'] / 1000).round(1)
+num_cols = ['Net SR', 'Net CR', 'Avg Trades']
+quarterly_detail[num_cols] = quarterly_detail[num_cols].apply(lambda s: s.round(2))
+
+print(quarterly_detail.to_markdown(index=False))
+
+```
+
 ## Group 2: Forex & Commodities (AUD, CAD, XAG, XAU)
 
 ```{python}
 #| label: tbl-group2-performance
-#| tbl-cap: "Group 2 Out-of-Sample Performance (5 OOS Quarters)"
+# IS quarters for Group 2
 
+quarterly_detail = portfolio_grp2[[
+    'quarter', 'netSR', 'netCR', 'net_cumPnL', 'av.ntrades'
+]].copy()
+
+quarterly_detail['quarter'] = quarterly_detail['quarter'].str.replace('data1_', '')
+quarterly_detail = quarterly_detail.rename(columns={
+    'quarter': 'Quarter',
+    'netSR': 'Net SR',
+    'netCR': 'Net CR',
+    'net_cumPnL': 'Net PnL ($k)',
+    'av.ntrades': 'Avg Trades'
+})
+
+# Compact formatting for docx layout
+quarterly_detail['Net PnL ($k)'] = (quarterly_detail['Net PnL ($k)'] / 1000).round(1)
+num_cols = ['Net SR', 'Net CR', 'Avg Trades']
+quarterly_detail[num_cols] = quarterly_detail[num_cols].apply(lambda s: s.round(2))
+
+print(quarterly_detail.to_markdown(index=False))
+
+
+
+#| tbl-cap: "Group 1 Out-of-Sample Performance (5 OOS Quarters)"
+oos_quarters = ["data1_2023_Q2", "data1_2024_Q1", "data1_2024_Q3", "data1_2025_Q3", "data1_2025_Q4"]
+grp1_oos = oos_perf_grp1[oos_perf_grp1['quarter'].isin(oos_quarters)].copy()
+oos_perf_grp1
+# Summary statistics
+summary_stats_grp1 = {
+    'Metric': [
+        'Total OOS Quarters',
+        'Total Net PnL ($)',
+        'Total Gross PnL ($)',
+        'Average Net Sharpe Ratio',
+        'Average Gross Sharpe Ratio',
+        'Average Net Calmar Ratio',
+        'Average Gross Calmar Ratio',
+        'Average Daily Trades',
+        'Win Rate (Asset-Quarters)',
+    ],
+    'Value': [
+        len(oos_quarters),
+        f"{grp1_oos['net_cumPnL'].sum():,.2f}",
+        f"{grp1_oos['gross_cumPnL'].sum():,.2f}",
+        f"{grp1_oos['netSR'].mean():.3f}",
+        f"{grp1_oos['grossSR'].mean():.3f}",
+        f"{grp1_oos['netCR'].mean():.3f}",
+        f"{grp1_oos['grossCR'].mean():.3f}",
+        f"{grp1_oos['av.ntrades'].mean():.1f}",
+        f"{(grp1_oos['net_cumPnL'] > 0).sum()}/{len(grp1_oos)}",
+    ]
+}
+
+summary_table_grp1 = pd.DataFrame(summary_stats_grp1)
+print(summary_table_grp1.to_markdown(index=False))
+
+```
+
+```{python}
+#| tbl-cap: "Group 2 Out-of-Sample Performance (5 OOS Quarters)"
 # OOS quarters for Group 2
 oos_quarters = ["data2_2023_Q2", "data2_2024_Q1", "data2_2024_Q3", "data2_2025_Q3", "data2_2025_Q4"]
 grp2_oos = oos_perf_grp2[oos_perf_grp2['quarter'].isin(oos_quarters)].copy()
@@ -287,6 +460,8 @@ summary_stats_grp2 = {
 
 summary_table_grp2 = pd.DataFrame(summary_stats_grp2)
 print(summary_table_grp2.to_markdown(index=False))
+
+
 ```
 
 ### Assets Traded
@@ -298,17 +473,45 @@ print(summary_table_grp2.to_markdown(index=False))
 ### Out-of-Sample Quarterly Performance
 
 ```{python}
-#| label: tbl-group2-quarterly
+
+#| label: tbl-group1-by-quarter
+#| tbl-cap: "Group 1 OOS Quarterly Performance by Asset"
+
+grp1_detail = grp1_oos[[
+    'quarter', 'asset', 'netSR', 'netCR', 'net_cumPnL', 'av.ntrades'
+]].copy()
+
+grp1_detail['quarter'] = grp1_detail['quarter'].str.replace('data1_', '')
+grp1_detail = grp1_detail.sort_values('netSR', ascending=False).head(4)
+
+grp1_detail.columns = ['Quarter', 'Asset', 'Net SR', 'Net CR', 'Net PnL', 'Avg Trades']
+
+
+print(grp1_detail.to_markdown(index=False))
+
+
+```
+
+```{python}
+#| label: tbl-group2-quarterly-final
 #| tbl-cap: "Group 2 OOS Quarterly Performance by Asset"
 
 grp2_detail = grp2_oos[[
     'quarter', 'asset', 'netSR', 'netCR', 'net_cumPnL', 'av.ntrades'
 ]].copy()
+# pick top 4 assets by overall mean netSR
+top_assets = (grp2_detail.groupby('asset')['netSR']
+              .mean()
+              .sort_values(ascending=False)
+              .head(2)
+              .index)
 
-grp2_detail['quarter'] = grp2_detail['quarter'].str.replace('data2_', '')
-grp2_detail.columns = ['Quarter', 'Asset', 'Net SR', 'Net CR', 'Net PnL', 'Avg Trades']
+# keep all quarters for those assets
+grp2_detail = grp2_detail[grp2_detail['asset'].isin(top_assets)]
+# grp2_detail.columns = ['Quarter', 'Asset', 'Net SR', 'Net CR', 'Net PnL', 'Avg Trades']
 
 print(grp2_detail.to_markdown(index=False))
+
 ```
 
 # Performance Visualizations
@@ -323,7 +526,7 @@ print(grp2_detail.to_markdown(index=False))
 
 # Load all daily portfolio files for Group 1
 all_daily_grp1 = []
-for fp in sorted(Path("../Testing/outputs_strategy02").glob("data1_*_PORTFOLIO_daily.csv")):
+for fp in sorted(Path("../Testing/outputs_Strategy02_grp1").glob("data1_*_PORTFOLIO_daily.csv")):
     daily = pd.read_csv(fp)
     daily["date"] = pd.to_datetime(daily["date"])
     daily["quarter"] = fp.stem.replace("_PORTFOLIO_daily", "")
@@ -376,8 +579,57 @@ Out-of-sample results for Group 2 are summarized in the metrics tables above. Th
 #| eval: false
 #| echo: false
 #| include: false
-# Placeholder chunk to suppress the previous OOS plot
-pass
+#| fig-cap: "Group 2 Portfolio - Gross and Net Cumulative P&L"
+#| fig-width: 10
+#| fig-height: 6
+
+# Load all daily portfolio files for Group 1
+all_daily_grp2 = []
+for fp in sorted(Path("../Testing/outputs_Strategy02_grp2").glob("data2_*_PORTFOLIO_daily.csv")):
+    daily = pd.read_csv(fp)
+    daily["date"] = pd.to_datetime(daily["date"])
+    daily["quarter"] = fp.stem.replace("_PORTFOLIO_daily", "")
+    all_daily_grp1.append(daily)
+
+if all_daily_grp1:
+    portfolio_full_grp1 = pd.concat(all_daily_grp1, ignore_index=True).sort_values("date")
+    portfolio_full_grp1["cum_net_pnl"] = portfolio_full_grp1["net_pnl"].cumsum()
+    portfolio_full_grp1["cum_gross_pnl"] = portfolio_full_grp1["gross_pnl"].cumsum()
+    
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    ax.plot(portfolio_full_grp1["date"], portfolio_full_grp1["cum_gross_pnl"], 
+            linewidth=2, color='steelblue', label='Gross P&L', alpha=0.8)
+    ax.plot(portfolio_full_grp1["date"], portfolio_full_grp1["cum_net_pnl"], 
+            linewidth=2, color='darkgreen', label='Net P&L')
+    
+    ax.axhline(0, color='red', linestyle='--', alpha=0.5, linewidth=1)
+    ax.set_xlabel("Date", fontsize=12, fontweight='bold')
+    ax.set_ylabel("Cumulative P&L ($)", fontsize=12, fontweight='bold')
+    ax.set_title("Group 1 Portfolio: Cumulative P&L (Gross vs Net)", 
+                 fontsize=14, fontweight='bold')
+    ax.legend(loc='upper left', fontsize=11)
+    ax.grid(True, alpha=0.3)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    
+    # Add performance annotations
+    final_net = portfolio_full_grp1["cum_net_pnl"].iloc[-1]
+    final_gross = portfolio_full_grp1["cum_gross_pnl"].iloc[-1]
+    total_costs = final_gross - final_net
+    
+    textstr = f'Final Net P&L: ${final_net:,.0f}\n'
+    textstr += f'Final Gross P&L: ${final_gross:,.0f}\n'
+    textstr += f'Total Costs: ${total_costs:,.0f}'
+    
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+    ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+
 ```
 
 # Conclusions
@@ -387,14 +639,14 @@ The mean-reversion strategy with volatility-based position sizing demonstrates r
 ## Key Findings
 
 1. **Strong Risk-Adjusted Returns**: Net Sharpe ratios consistently above industry benchmarks for intraday strategies
-2. **Consistent Profitability**: High win rates across quarters despite varying market conditions
-3. **Effective Cost Management**: Transaction costs represent a manageable proportion of gross P&L
-4. **Scalability**: Strategy architecture successfully adapts to different asset classes (futures and forex/commodities)
+2. **Seasonal Profitability**: High win rates across multiple oos quarters, which could be better with frequent parameter tuning.(Eg. Weekly retuning)
+3. **Effective Cost Management**: Transaction costs represent a manageable proportion of gross P&L, due to holding period and other parameters limiting trade to lower frequency intervals.
+4. **Scalability**: Strategy architecture successfully adapts to different asset classes (futures and forex/commodities).
 5. **Out-of-Sample Validation**: Group 2 OOS results confirm strategy robustness and generalizability
 
 ## Risk Considerations
 
 1. **Market Regime Dependency**: Performance may deteriorate in extremely trending markets where mean-reversion assumptions break down
 2. **Transaction Costs**: High-frequency trading requires tight execution to maintain profitability
-3. **Parameter Stability**: Quarterly re-optimization may be necessary to maintain performance
+3. **Parameter Stability**: Sooner than quarterly re-optimization may be necessary to maintain performance.
 4. **Liquidity Requirements**: Strategy assumes sufficient market depth for position sizes
